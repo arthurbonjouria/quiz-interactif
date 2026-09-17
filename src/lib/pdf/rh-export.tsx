@@ -153,7 +153,7 @@ function RhExportDocument({ data }: { data: RhExportData }) {
               <Text style={styles.headerCell}>Statut</Text>
             </View>
             {data.rows.map((row, i) => (
-              <View style={[styles.row, i % 2 === 1 ? styles.rowAlt : undefined]} key={i}>
+              <View style={i % 2 === 1 ? [styles.row, styles.rowAlt] : [styles.row]} key={i}>
                 <Text style={styles.cell}>{row.fullName}</Text>
                 <Text style={styles.cell}>{row.email}</Text>
                 <Text style={styles.cell}>{row.score}</Text>

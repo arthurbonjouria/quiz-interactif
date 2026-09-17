@@ -5,7 +5,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const certificate = await prisma.certificate.findUnique({ where: { attemptId: params.id } });
   if (!certificate) return NextResponse.json({ error: "Certificat introuvable" }, { status: 404 });
 
-  return new NextResponse(certificate.pdfData, {
+  return new NextResponse(new Uint8Array(certificate.pdfData), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="certificat-bonjour-ia.pdf"`,

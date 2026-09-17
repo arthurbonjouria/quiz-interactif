@@ -55,7 +55,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
   const pdf = await generateRhExportPdf({ companyName: company.name, campaignLabel, rows, certificates });
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="export-${company.domain}.pdf"`,
