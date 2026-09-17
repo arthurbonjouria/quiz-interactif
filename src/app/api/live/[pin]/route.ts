@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { formatDisplayName } from "@/lib/display-name";
 
 export async function GET(_req: Request, { params }: { params: { pin: string } }) {
   const session = await prisma.liveSession.findUnique({
@@ -11,6 +12,9 @@ export async function GET(_req: Request, { params }: { params: { pin: string } }
           company: true,
         },
       },
+      attempts: {
+        include: { participant: true },
+      },
     },
   });
 
@@ -18,6 +22,14 @@ export async function GET(_req: Request, { params }: { params: { pin: string } }
 
   const questions = session.campaign.questionnaire.questions;
   const currentQuestion = questions[session.currentIndex] ?? null;
+
+  const top3 = [...session.attempts]
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, 3)
+    .map((a) => ({
+      name: formatDisplayName(a.participant.firstName, a.participant.lastName),
+      score: a.totalScore,
+    }));
 
   return NextResponse.json({
     id: session.id,
@@ -38,5 +50,6 @@ export async function GET(_req: Request, { params }: { params: { pin: string } }
           timeLimitSec: currentQuestion.timeLimitSec,
         }
       : null,
+    top3,
   });
 }

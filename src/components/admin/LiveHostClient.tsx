@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import QRCode from "qrcode";
 
 type Player = { attemptId: string; name: string; score: number; answeredCurrent: boolean };
 
@@ -32,6 +33,7 @@ const COLORS = ["bg-red-500", "bg-blue-500", "bg-yellow-500", "bg-green-500"];
 export function LiveHostClient({ sessionId }: { sessionId: string }) {
   const [state, setState] = useState<SessionState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const revealTriggeredForIndex = useRef<number>(-1);
 
   const poll = useCallback(async () => {
@@ -73,9 +75,16 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  if (!state) return <p className="text-white/70">Chargement…</p>;
+  const joinUrl = typeof window !== "undefined" && state ? `${window.location.origin}/play/${state.pin}` : "";
 
-  const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/play/${state.pin}` : "";
+  useEffect(() => {
+    if (!joinUrl) return;
+    QRCode.toDataURL(joinUrl, { width: 220, margin: 1, color: { dark: "#0A0A0A", light: "#FFFFFF" } })
+      .then(setQrDataUrl)
+      .catch(() => setQrDataUrl(null));
+  }, [joinUrl]);
+
+  if (!state) return <p className="text-white/70">Chargement…</p>;
 
   return (
     <div className="flex w-full max-w-3xl flex-col gap-6 text-white">
@@ -84,10 +93,19 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
       {state.status === "LOBBY" && (
         <div className="flex flex-col items-center gap-6 text-center">
           <p className="text-sm uppercase tracking-widest text-white/60">{state.questionnaireTitle}</p>
-          <div className="rounded-2xl bg-white px-10 py-6 text-ink">
-            <p className="text-xs uppercase tracking-widest text-neutral-500">Code à saisir sur son téléphone</p>
-            <p className="text-6xl font-bold tabular-nums text-brand">{state.pin}</p>
-            <p className="mt-2 text-sm text-neutral-500">{joinUrl}</p>
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-stretch">
+            {qrDataUrl && (
+              <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-white p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qrDataUrl} alt="QR code pour rejoindre la partie" width={180} height={180} />
+                <p className="text-xs text-neutral-500">Scanner pour rejoindre</p>
+              </div>
+            )}
+            <div className="rounded-2xl bg-white px-10 py-6 text-ink">
+              <p className="text-xs uppercase tracking-widest text-neutral-500">Code à saisir sur son téléphone</p>
+              <p className="text-6xl font-bold tabular-nums text-brand">{state.pin}</p>
+              <p className="mt-2 text-sm text-neutral-500">{joinUrl}</p>
+            </div>
           </div>
           <p className="text-lg font-semibold">{state.players.length} joueur(s) connecté(s)</p>
           <div className="flex max-w-lg flex-wrap justify-center gap-2">
@@ -162,17 +180,8 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/60">Classement</p>
-            <div className="flex flex-col gap-1">
-              {state.players.slice(0, 5).map((p, i) => (
-                <div key={p.attemptId} className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2 text-sm">
-                  <span>
-                    {i + 1}. {p.name}
-                  </span>
-                  <span className="font-bold">{p.score}</span>
-                </div>
-              ))}
-            </div>
+            <p className="mb-3 text-center text-sm font-semibold uppercase tracking-wide text-white/60">Top 3</p>
+            <Podium players={state.players} />
           </div>
 
           <button
@@ -187,24 +196,47 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
       {state.status === "FINISHED" && (
         <div className="flex flex-col items-center gap-6 text-center">
           <p className="text-2xl font-bold">🎉 Partie terminée !</p>
-          <div className="flex w-full max-w-md flex-col gap-2">
-            {state.players.map((p, i) => (
-              <div
-                key={p.attemptId}
-                className={`flex items-center justify-between rounded-lg px-4 py-3 ${i === 0 ? "bg-brand" : "bg-white/10"}`}
-              >
-                <span className="font-semibold">
-                  {i + 1}. {p.name}
-                </span>
-                <span className="font-bold">{p.score}</span>
-              </div>
-            ))}
-          </div>
+          <Podium players={state.players} />
+          {state.players.length > 3 && (
+            <div className="flex w-full max-w-md flex-col gap-1">
+              {state.players.slice(3).map((p, i) => (
+                <div key={p.attemptId} className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2 text-sm">
+                  <span>
+                    {i + 4}. {p.name}
+                  </span>
+                  <span className="font-bold">{p.score}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <p className="text-sm text-white/60">
             Les certificats ont été générés et envoyés par email à chaque participant.
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function Podium({ players }: { players: Player[] }) {
+  const [first, second, third] = players;
+  const heights = ["h-28", "h-20", "h-14"];
+  const order = [second, first, third];
+
+  return (
+    <div className="flex items-end justify-center gap-3">
+      {order.map((p, col) => {
+        if (!p) return <div key={col} className="w-28" />;
+        const rank = col === 1 ? 0 : col === 0 ? 1 : 2;
+        return (
+          <div key={p.attemptId} className="flex w-28 flex-col items-center gap-2">
+            <span className="text-2xl">{["🥇", "🥈", "🥉"][rank]}</span>
+            <span className="max-w-full truncate text-sm font-semibold">{p.name}</span>
+            <span className="text-lg font-bold text-brand">{p.score}</span>
+            <div className={`w-full rounded-t-lg bg-white/15 ${heights[rank]}`} />
+          </div>
+        );
+      })}
     </div>
   );
 }

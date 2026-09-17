@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
+import { formatDisplayName } from "@/lib/display-name";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const { response } = await requireAdmin();
@@ -34,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const currentAnswer = currentQuestion ? a.answers.find((ans) => ans.questionId === currentQuestion.id) : undefined;
     return {
       attemptId: a.id,
-      name: `${a.participant.firstName} ${a.participant.lastName}`,
+      name: formatDisplayName(a.participant.firstName, a.participant.lastName),
       score: a.totalScore,
       answeredCurrent: Boolean(currentAnswer),
     };

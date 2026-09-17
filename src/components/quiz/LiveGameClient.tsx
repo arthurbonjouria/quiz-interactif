@@ -22,6 +22,7 @@ type SessionState = {
   questionnaireTitle: string;
   campaignCode: string;
   currentQuestion: Question | null;
+  top3: { name: string; score: number }[];
 };
 
 type AnswerResult = { correct: boolean; correctIndex: number; pointsEarned: number };
@@ -132,6 +133,23 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
           <p className="text-white/70">Réponse révélée sur l&apos;écran principal.</p>
         )}
         <p className="text-sm text-white/60">Score total : {score}</p>
+
+        {state.top3.length > 0 && (
+          <div className="mt-2 w-full">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">Top 3</p>
+            <div className="flex flex-col gap-1">
+              {state.top3.map((p, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2 text-sm">
+                  <span>
+                    {["🥇", "🥈", "🥉"][i]} {p.name}
+                  </span>
+                  <span className="font-bold">{p.score}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <p className="mt-4 text-sm text-white/50">En attente de la question suivante…</p>
       </div>
     );
