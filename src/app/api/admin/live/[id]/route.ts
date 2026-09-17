@@ -1,0 +1,73 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/require-admin";
+
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const { response } = await requireAdmin();
+  if (response) return response;
+
+  const session = await prisma.liveSession.findUnique({
+    where: { id: params.id },
+    include: {
+      campaign: {
+        include: {
+          questionnaire: { include: { questions: { orderBy: { order: "asc" } } } },
+          company: true,
+        },
+      },
+      attempts: {
+        include: {
+          participant: true,
+          answers: true,
+        },
+        orderBy: { startedAt: "asc" },
+      },
+    },
+  });
+
+  if (!session) return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
+
+  const questions = session.campaign.questionnaire.questions;
+  const currentQuestion = questions[session.currentIndex] ?? null;
+
+  const players = session.attempts.map((a) => {
+    const currentAnswer = currentQuestion ? a.answers.find((ans) => ans.questionId === currentQuestion.id) : undefined;
+    return {
+      attemptId: a.id,
+      name: `${a.participant.firstName} ${a.participant.lastName}`,
+      score: a.totalScore,
+      answeredCurrent: Boolean(currentAnswer),
+    };
+  });
+
+  const answerDistribution = currentQuestion
+    ? currentQuestion.choices
+        ? (JSON.parse(currentQuestion.choices) as string[]).map(
+            (_, i) => session.attempts.flatMap((a) => a.answers).filter((ans) => ans.questionId === currentQuestion.id && ans.choiceIndex === i).length
+          )
+        : []
+    : [];
+
+  return NextResponse.json({
+    id: session.id,
+    pin: session.pin,
+    status: session.status,
+    currentIndex: session.currentIndex,
+    questionStartedAt: session.questionStartedAt,
+    totalQuestions: questions.length,
+    questionnaireTitle: session.campaign.questionnaire.title,
+    companyName: session.campaign.company.name,
+    currentQuestion: currentQuestion
+      ? {
+          id: currentQuestion.id,
+          text: currentQuestion.text,
+          choices: JSON.parse(currentQuestion.choices) as string[],
+          correctIndex: currentQuestion.correctIndex,
+          points: currentQuestion.points,
+          timeLimitSec: currentQuestion.timeLimitSec,
+        }
+      : null,
+    answerDistribution,
+    players: players.sort((a, b) => b.score - a.score),
+  });
+}

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quiz-dev",
+      "runtimeExecutable": "C:\\Dev\\QuizInteractif\\dev-with-node.cmd",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}

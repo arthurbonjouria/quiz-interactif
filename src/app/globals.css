@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-offwhite text-ink font-body;
+}
+
+h1, h2, h3, h4 {
+  @apply font-heading;
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes score-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-2deg);
+  }
+  75% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes shake-no {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes float-blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -15px) scale(1.05);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(340px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.animate-score-pop {
+  animation: score-pop 0.4s ease-out;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-shake-no {
+  animation: shake-no 0.4s ease-in-out;
+}
+
+.animate-float-blob {
+  animation: float-blob 6s ease-in-out infinite;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  animation: confetti-fall 1.6s ease-in forwards;
+}

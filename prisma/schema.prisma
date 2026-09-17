@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Catégories possibles (SQLite ne supporte pas les enums natifs) : POSITIONNEMENT | IA_ACT | ACQUIS
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+model Company {
+  id         String     @id @default(cuid())
+  domain     String     @unique
+  name       String
+  isPersonal Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  participants Participant[]
+  campaigns  Campaign[]
+}
+
+model Participant {
+  id        String     @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String     @unique
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id])
+  attempts  Attempt[]
+  createdAt DateTime   @default(now())
+}
+
+model Questionnaire {
+  id        String                @id @default(cuid())
+  title     String
+  category  String
+  createdAt DateTime   @default(now())
+  questions Question[]
+  campaigns Campaign[]
+}
+
+model Question {
+  id              String        @id @default(cuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  text            String
+  choices         String // JSON-encoded string[]
+  correctIndex    Int
+  points          Int           @default(1000)
+  timeLimitSec    Int           @default(20)
+  order           Int           @default(0)
+  answers         Answer[]
+}
+
+model Campaign {
+  id              String        @id @default(cuid())
+  code            String        @unique
+  label           String
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id])
+  companyId       String
+  company         Company       @relation(fields: [companyId], references: [id])
+  startsAt        DateTime      @default(now())
+  endsAt          DateTime?
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  attempts        Attempt[]
+  liveSessions    LiveSession[]
+}
+
+model Attempt {
+  id            String       @id @default(cuid())
+  participantId String
+  participant   Participant  @relation(fields: [participantId], references: [id])
+  campaignId    String
+  campaign      Campaign     @relation(fields: [campaignId], references: [id])
+  liveSessionId String?
+  liveSession   LiveSession? @relation(fields: [liveSessionId], references: [id])
+  startedAt     DateTime     @default(now())
+  finishedAt    DateTime?
+  totalScore    Int          @default(0)
+  answers       Answer[]
+  certificate   Certificate?
+}
+
+model LiveSession {
+  id                String    @id @default(cuid())
+  campaignId        String
+  campaign          Campaign  @relation(fields: [campaignId], references: [id])
+  pin               String    @unique
+  status            String    @default("LOBBY") // LOBBY | QUESTION | REVEAL | FINISHED
+  currentIndex      Int       @default(0)
+  questionStartedAt DateTime?
+  createdAt         DateTime  @default(now())
+  attempts          Attempt[]
+}
+
+model Answer {
+  id             String   @id @default(cuid())
+  attemptId      String
+  attempt        Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId     String
+  question       Question @relation(fields: [questionId], references: [id])
+  choiceIndex    Int?
+  correct        Boolean
+  responseTimeMs Int
+  pointsEarned   Int
+  createdAt      DateTime @default(now())
+
+  @@unique([attemptId, questionId])
+}
+
+model Certificate {
+  id         String    @id @default(cuid())
+  attemptId  String    @unique
+  attempt    Attempt   @relation(fields: [attemptId], references: [id])
+  pdfData    Bytes
+  issuedAt   DateTime  @default(now())
+  emailedAt  DateTime?
+}
