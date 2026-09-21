@@ -49,7 +49,7 @@ const FORMATEUR_POINTS = [
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col overflow-x-hidden bg-offwhite">
+    <main className="flex min-h-screen flex-col overflow-x-hidden bg-offwhite font-heading">
       <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Logo className="h-7" />
@@ -175,7 +175,7 @@ export default function HomePage() {
       {/* Mission pull-quote */}
       <section className="bg-ink py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <p className="font-body text-2xl italic leading-snug text-white sm:text-3xl">
+          <p className="text-2xl font-semibold leading-snug tracking-tight text-white sm:text-3xl">
             « L&apos;IA n&apos;est pas le sujet.
             <br className="hidden sm:block" /> Le sujet, c&apos;est les équipes face à l&apos;IA. »
           </p>
