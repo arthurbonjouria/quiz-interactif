@@ -25,6 +25,8 @@ model Company {
   domain     String     @unique
   name       String
   isPersonal Boolean    @default(false)
+  logoUrl    String?
+  brandColor String?
   createdAt  DateTime   @default(now())
   participants Participant[]
   campaigns  Campaign[]
@@ -162,6 +164,17 @@ model Answer {
   createdAt      DateTime @default(now())
 
   @@unique([attemptId, questionId])
+}
+
+// userType : ADMIN (AdminUser) | STUDENT (Participant)
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userType  String
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 // status : PENDING | APPROVED | REJECTED

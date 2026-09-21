@@ -63,6 +63,8 @@ export async function finishAttempt(attemptId: string) {
       score: totalScore,
       gradeOutOf10,
       date,
+      companyLogoUrl: attempt.participant.company.logoUrl,
+      brandColor: attempt.participant.company.brandColor,
     });
 
     const certificate = await prisma.certificate.create({

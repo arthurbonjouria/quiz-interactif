@@ -7,6 +7,12 @@ const bodySchema = z.object({
   name: z.string().min(1).optional(),
   domain: z.string().min(1).optional(),
   mergeIntoId: z.string().min(1).optional(),
+  logoUrl: z.string().url().nullable().optional(),
+  brandColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .nullable()
+    .optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -15,7 +21,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const parsed = bodySchema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Formulaire invalide" }, { status: 400 });
-  const { name, domain, mergeIntoId } = parsed.data;
+  const { name, domain, mergeIntoId, logoUrl, brandColor } = parsed.data;
 
   if (mergeIntoId) {
     if (mergeIntoId === params.id) {
@@ -31,7 +37,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const company = await prisma.company.update({
     where: { id: params.id },
-    data: { ...(name ? { name } : {}), ...(domain ? { domain: domain.trim().toLowerCase() } : {}) },
+    data: {
+      ...(name ? { name } : {}),
+      ...(domain ? { domain: domain.trim().toLowerCase() } : {}),
+      ...(logoUrl !== undefined ? { logoUrl } : {}),
+      ...(brandColor !== undefined ? { brandColor } : {}),
+    },
   });
 
   return NextResponse.json(company);

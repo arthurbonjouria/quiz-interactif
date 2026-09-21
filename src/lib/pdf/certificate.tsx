@@ -38,6 +38,22 @@ const styles = StyleSheet.create({
     height: 22,
     width: 44,
   },
+  wordmarkGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  wordmarkDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: "#E5E5E5",
+    marginLeft: 12,
+    marginRight: 12,
+  },
+  companyLogo: {
+    height: 22,
+    maxWidth: 90,
+    objectFit: "contain",
+  },
   categoryPill: {
     backgroundColor: INK,
     color: "#FFFFFF",
@@ -170,16 +186,29 @@ export type CertificateData = {
   score: number;
   gradeOutOf10?: number;
   date: string;
+  companyLogoUrl?: string | null;
+  brandColor?: string | null;
 };
 
 export function CertificateBody({ data }: { data: CertificateData }) {
+  const accent = data.brandColor || BRAND;
+
   return (
     <View style={styles.page}>
       <View style={styles.ribbon} />
-      <View style={styles.ribbonAccent} />
+      <View style={[styles.ribbonAccent, { backgroundColor: accent }]} />
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <Image style={styles.wordmark} src={LOGO_NOIR_ROSE_BASE64} />
+          <View style={styles.wordmarkGroup}>
+            <Image style={styles.wordmark} src={LOGO_NOIR_ROSE_BASE64} />
+            {data.companyLogoUrl && (
+              <>
+                <View style={styles.wordmarkDivider} />
+                {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                <Image style={styles.companyLogo} src={data.companyLogoUrl} />
+              </>
+            )}
+          </View>
           <Text style={styles.categoryPill}>{CATEGORY_LABELS[data.category] ?? data.category.toUpperCase()}</Text>
         </View>
 
@@ -189,7 +218,7 @@ export function CertificateBody({ data }: { data: CertificateData }) {
           <Text style={styles.name}>
             {data.firstName} {data.lastName}
           </Text>
-          <View style={styles.nameRule} />
+          <View style={[styles.nameRule, { backgroundColor: accent }]} />
           <Text style={styles.company}>{data.companyName}</Text>
           <Text style={styles.description}>
             pour avoir complété avec succès le questionnaire{" "}

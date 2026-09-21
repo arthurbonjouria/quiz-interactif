@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { CompanySettingsForm } from "@/components/admin/CompanySettingsForm";
+import { CompanyBrandingForm } from "@/components/admin/CompanyBrandingForm";
 import { ResendCertificateButton } from "@/components/admin/ResendCertificateButton";
 import { BarChart } from "@/components/admin/BarChart";
 import { auth } from "@/lib/auth";
@@ -76,6 +77,8 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
       </div>
 
       <CompanySettingsForm companyId={company.id} initialName={company.name} initialDomain={company.domain} otherCompanies={otherCompanies} />
+
+      <CompanyBrandingForm companyId={company.id} initialLogoUrl={company.logoUrl} initialBrandColor={company.brandColor} />
 
       {company.campaigns.length > 0 && (
         <div className="flex flex-col gap-6 rounded-xl border border-neutral-200 bg-white p-5">

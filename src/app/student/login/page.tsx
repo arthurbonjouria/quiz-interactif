@@ -59,7 +59,12 @@ export default function StudentLoginPage() {
             {loading ? "Connexion…" : "Se connecter"}
           </button>
         </form>
-        <p className="mt-6 text-center text-xs text-neutral-400">
+        <p className="mt-4 text-center text-xs">
+          <Link href="/student/forgot-password" className="font-medium text-neutral-400 hover:text-brand">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+        <p className="mt-4 text-center text-xs text-neutral-400">
           Vos identifiants vous ont été envoyés par email lors de votre inscription à un cours.
         </p>
       </div>

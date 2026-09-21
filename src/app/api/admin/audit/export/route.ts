@@ -12,6 +12,7 @@ const ACTION_LABELS: Record<string, string> = {
   "team.create": "Formateur ajouté",
   "team.delete": "Formateur supprimé",
   "access_request.reject": "Demande d'accès refusée",
+  "password.reset": "Mot de passe réinitialisé",
   "reminder.sent": "Relances automatiques",
 };
 

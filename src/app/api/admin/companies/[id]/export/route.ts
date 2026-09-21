@@ -55,6 +55,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     score: a.totalScore,
     gradeOutOf10: gradeFor(a),
     date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
+    companyLogoUrl: company.logoUrl,
+    brandColor: company.brandColor,
   }));
 
   const campaignLabel = campaignId ? attempts[0]?.campaign.label ?? "Campagne" : "Toutes campagnes";

@@ -132,6 +132,25 @@ export function formateurInviteEmail(params: { firstName: string; email: string;
   );
 }
 
+export function passwordResetEmail(params: { firstName: string; resetUrl: string }) {
+  return wrapper(
+    "Réinitialisation de votre mot de passe",
+    `
+    <p>Bonjour ${params.firstName},</p>
+    <p>Vous avez demandé la réinitialisation de votre mot de passe sur la plateforme BONJOUR IA.</p>
+    <p style="margin:24px 0;">
+      <a href="${params.resetUrl}" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;background:#E83967;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:bold;">
+        Choisir un nouveau mot de passe
+      </a>
+    </p>
+    <p style="font-size:12px;color:#8A8681;">
+      Ce lien est valable 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email —
+      votre mot de passe actuel reste inchangé.
+    </p>
+  `
+  );
+}
+
 export function accessRequestNotificationEmail(params: { requesterName: string; requesterEmail: string; message?: string }) {
   return wrapper(
     "Nouvelle demande d'accès formateur",

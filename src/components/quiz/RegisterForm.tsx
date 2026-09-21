@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function RegisterForm({ code }: { code: string }) {
+export function RegisterForm({ code, accentColor }: { code: string; accentColor?: string | null }) {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -70,7 +70,10 @@ export function RegisterForm({ code }: { code: string }) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-ink py-3 text-sm font-semibold text-white transition hover:bg-brand disabled:opacity-50"
+        style={accentColor ? { backgroundColor: accentColor } : undefined}
+        className={`rounded-lg py-3 text-sm font-semibold text-white transition disabled:opacity-50 ${
+          accentColor ? "hover:opacity-90" : "bg-ink hover:bg-brand"
+        }`}
       >
         {loading ? "Chargement…" : "Commencer le questionnaire"}
       </button>

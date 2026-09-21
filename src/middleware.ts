@@ -18,5 +18,10 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin", "/admin/((?!login).*)", "/student", "/student/((?!login).*)"],
+  matcher: [
+    "/admin",
+    "/admin/((?!login|forgot-password|reset-password).*)",
+    "/student",
+    "/student/((?!login|forgot-password|reset-password).*)",
+  ],
 };
