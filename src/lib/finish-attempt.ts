@@ -24,13 +24,10 @@ export async function finishAttempt(attemptId: string) {
   if (!attempt) throw new Error("Tentative introuvable");
 
   const totalScore = attempt.answers.reduce((sum, a) => sum + a.pointsEarned, 0);
-  const isGraded = Boolean(attempt.campaign.videoUrl);
-  const gradeOutOf10 = isGraded
-    ? computeGradeOutOf10(
-        attempt.answers.filter((a) => a.correct).length,
-        attempt.campaign.questionnaire.questions.length
-      )
-    : null;
+  const totalQuestions = attempt.campaign.questionnaire.questions.length;
+  // Le certificat et le résultat affichent toujours une note sur 10 (bonnes réponses / total),
+  // quel que soit le mode de jeu — le score type Kahoot reste utilisé pendant la partie/le classement.
+  const gradeOutOf10 = computeGradeOutOf10(attempt.answers.filter((a) => a.correct).length, totalQuestions);
 
   if (!attempt.finishedAt) {
     await prisma.attempt.update({
@@ -43,19 +40,15 @@ export async function finishAttempt(attemptId: string) {
     where: { campaignId: attempt.campaignId, finishedAt: { not: null } },
     include: { answers: true },
   });
-  const totalQuestions = attempt.campaign.questionnaire.questions.length;
-  const companyAverage = isGraded
-    ? companyAttempts.length > 0
+  const companyAverage =
+    companyAttempts.length > 0
       ? Math.round(
           companyAttempts.reduce(
             (s, a) => s + computeGradeOutOf10(a.answers.filter((ans) => ans.correct).length, totalQuestions),
             0
           ) / companyAttempts.length
         )
-      : gradeOutOf10 ?? 0
-    : companyAttempts.length > 0
-      ? Math.round(companyAttempts.reduce((s, a) => s + a.totalScore, 0) / companyAttempts.length)
-      : totalScore;
+      : gradeOutOf10;
 
   let certificateId = attempt.certificate?.id ?? null;
 
@@ -68,7 +61,7 @@ export async function finishAttempt(attemptId: string) {
       questionnaireTitle: attempt.campaign.questionnaire.title,
       category: CATEGORY_LABELS[attempt.campaign.questionnaire.category] ?? attempt.campaign.questionnaire.category,
       score: totalScore,
-      gradeOutOf10: gradeOutOf10 ?? undefined,
+      gradeOutOf10,
       date,
     });
 
@@ -84,7 +77,7 @@ export async function finishAttempt(attemptId: string) {
         firstName: attempt.participant.firstName,
         questionnaireTitle: attempt.campaign.questionnaire.title,
         score: totalScore,
-        gradeOutOf10: gradeOutOf10 ?? undefined,
+        gradeOutOf10,
       }),
       attachments: [{ filename: `certificat-${attempt.participant.lastName}.pdf`, content: pdfBuffer }],
     })

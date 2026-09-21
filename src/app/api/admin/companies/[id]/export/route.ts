@@ -36,20 +36,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   });
 
   const gradeFor = (a: (typeof attempts)[number]) =>
-    a.campaign.videoUrl
-      ? computeGradeOutOf10(a.answers.filter((ans) => ans.correct).length, a.campaign.questionnaire.questions.length)
-      : null;
+    computeGradeOutOf10(a.answers.filter((ans) => ans.correct).length, a.campaign.questionnaire.questions.length);
 
-  const rows: RhExportRow[] = attempts.map((a) => {
-    const grade = gradeFor(a);
-    return {
-      fullName: `${a.participant.firstName} ${a.participant.lastName}`,
-      email: a.participant.email,
-      score: grade !== null ? grade : a.totalScore,
-      date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
-      status: "Terminé",
-    };
-  });
+  const rows: RhExportRow[] = attempts.map((a) => ({
+    fullName: `${a.participant.firstName} ${a.participant.lastName}`,
+    email: a.participant.email,
+    score: gradeFor(a),
+    date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
+    status: "Terminé",
+  }));
 
   const certificates: CertificateData[] = attempts.map((a) => ({
     firstName: a.participant.firstName,
@@ -58,7 +53,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     questionnaireTitle: a.campaign.questionnaire.title,
     category: CATEGORY_LABELS[a.campaign.questionnaire.category] ?? a.campaign.questionnaire.category,
     score: a.totalScore,
-    gradeOutOf10: gradeFor(a) ?? undefined,
+    gradeOutOf10: gradeFor(a),
     date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
   }));
 

@@ -134,8 +134,8 @@ function RhExportDocument({ data }: { data: RhExportData }) {
               <Text style={styles.summaryValue}>{finishedCount}</Text>
             </View>
             <View style={styles.summaryCard}>
-              <Text style={styles.summaryLabel}>Score moyen</Text>
-              <Text style={styles.summaryValue}>{avgScore}</Text>
+              <Text style={styles.summaryLabel}>Note moyenne</Text>
+              <Text style={styles.summaryValue}>{avgScore}/10</Text>
             </View>
           </View>
 
@@ -143,7 +143,7 @@ function RhExportDocument({ data }: { data: RhExportData }) {
             <View style={[styles.row, styles.headerRow]}>
               <Text style={styles.headerCell}>Nom</Text>
               <Text style={styles.headerCell}>Email</Text>
-              <Text style={styles.headerCell}>Score</Text>
+              <Text style={styles.headerCell}>Note</Text>
               <Text style={styles.headerCell}>Date</Text>
               <Text style={styles.headerCell}>Statut</Text>
             </View>
@@ -151,7 +151,7 @@ function RhExportDocument({ data }: { data: RhExportData }) {
               <View style={i % 2 === 1 ? [styles.row, styles.rowAlt] : [styles.row]} key={i}>
                 <Text style={styles.cell}>{row.fullName}</Text>
                 <Text style={styles.cell}>{row.email}</Text>
-                <Text style={styles.cell}>{row.score}</Text>
+                <Text style={styles.cell}>{row.score}/10</Text>
                 <Text style={styles.cell}>{row.date}</Text>
                 <Text style={styles.cell}>{row.status}</Text>
               </View>
