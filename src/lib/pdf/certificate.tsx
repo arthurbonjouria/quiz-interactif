@@ -168,6 +168,7 @@ export type CertificateData = {
   questionnaireTitle: string;
   category: string;
   score: number;
+  gradeOutOf10?: number;
   date: string;
 };
 
@@ -204,8 +205,10 @@ export function CertificateBody({ data }: { data: CertificateData }) {
           </View>
 
           <View style={styles.scoreBadge}>
-            <Text style={styles.scoreValue}>{data.score}</Text>
-            <Text style={styles.scoreLabel}>Points</Text>
+            <Text style={styles.scoreValue}>
+              {data.gradeOutOf10 !== undefined ? `${data.gradeOutOf10}/10` : data.score}
+            </Text>
+            <Text style={styles.scoreLabel}>{data.gradeOutOf10 !== undefined ? "Note" : "Points"}</Text>
           </View>
 
           <View style={styles.bottomBlock}>

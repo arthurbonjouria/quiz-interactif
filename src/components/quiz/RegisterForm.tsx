@@ -29,6 +29,8 @@ export function RegisterForm({ code }: { code: string }) {
       }
       if (data.alreadyFinished) {
         router.push(`/s/${code}/result/${data.attemptId}`);
+      } else if (data.hasVideo) {
+        router.push(`/s/${code}/video?attempt=${data.attemptId}`);
       } else {
         router.push(`/s/${code}/play?attempt=${data.attemptId}`);
       }

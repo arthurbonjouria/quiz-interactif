@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Logo } from "@/components/Logo";
+import { computeGradeOutOf10 } from "@/lib/grade";
 
 export default async function ResultPage({
   params,
@@ -11,19 +12,33 @@ export default async function ResultPage({
     where: { id: params.attemptId },
     include: {
       participant: true,
-      campaign: { include: { questionnaire: true } },
+      campaign: { include: { questionnaire: { include: { questions: true } } } },
       certificate: true,
+      answers: true,
     },
   });
 
   if (!attempt || attempt.campaign.code !== params.code) notFound();
 
+  const isGraded = Boolean(attempt.campaign.videoUrl);
+  const totalQuestions = attempt.campaign.questionnaire.questions.length;
+
   const finishedAttempts = await prisma.attempt.findMany({
     where: { campaignId: attempt.campaignId, finishedAt: { not: null } },
-    select: { totalScore: true },
+    include: { answers: true },
   });
-  const companyAverage =
-    finishedAttempts.length > 0
+
+  const myGrade = computeGradeOutOf10(attempt.answers.filter((a) => a.correct).length, totalQuestions);
+  const average = isGraded
+    ? finishedAttempts.length > 0
+      ? Math.round(
+          finishedAttempts.reduce(
+            (s, a) => s + computeGradeOutOf10(a.answers.filter((ans) => ans.correct).length, totalQuestions),
+            0
+          ) / finishedAttempts.length
+        )
+      : myGrade
+    : finishedAttempts.length > 0
       ? Math.round(finishedAttempts.reduce((s, a) => s + a.totalScore, 0) / finishedAttempts.length)
       : attempt.totalScore;
 
@@ -35,12 +50,13 @@ export default async function ResultPage({
       <p className="text-neutral-600">{attempt.campaign.questionnaire.title}</p>
 
       <div className="rounded-2xl bg-ink px-10 py-8 text-white">
-        <p className="text-sm uppercase tracking-widest text-neutral-400">Votre score</p>
-        <p className="text-5xl font-bold text-brand">{attempt.totalScore}</p>
+        <p className="text-sm uppercase tracking-widest text-neutral-400">{isGraded ? "Votre note" : "Votre score"}</p>
+        <p className="text-5xl font-bold text-brand">{isGraded ? `${myGrade}/10` : attempt.totalScore}</p>
       </div>
 
       <p className="text-sm text-neutral-600">
-        Score moyen dans votre entreprise pour ce questionnaire : <strong>{companyAverage}</strong>
+        {isGraded ? "Note moyenne" : "Score moyen"} dans votre entreprise pour ce questionnaire :{" "}
+        <strong>{isGraded ? `${average}/10` : average}</strong>
       </p>
 
       {attempt.certificate ? (

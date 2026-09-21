@@ -7,6 +7,7 @@ const bodySchema = z.object({
   label: z.string().min(1).optional(),
   endsAt: z.string().nullable().optional(),
   active: z.boolean().optional(),
+  videoUrl: z.string().nullable().optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!parsed.success) {
     return NextResponse.json({ error: "Formulaire invalide" }, { status: 400 });
   }
-  const { label, endsAt, active } = parsed.data;
+  const { label, endsAt, active, videoUrl } = parsed.data;
 
   let parsedEndsAt: Date | null | undefined = undefined;
   if (endsAt !== undefined) {
@@ -48,6 +49,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(label !== undefined ? { label } : {}),
       ...(parsedEndsAt !== undefined ? { endsAt: parsedEndsAt } : {}),
       ...(active !== undefined ? { active } : {}),
+      ...(videoUrl !== undefined ? { videoUrl } : {}),
     },
   });
 

@@ -56,5 +56,9 @@ export async function POST(req: Request) {
     html: registrationConfirmationEmail({ firstName, questionnaireTitle: campaign.questionnaire.title }),
   }).catch((err) => console.error("[email] échec envoi confirmation", err));
 
-  return NextResponse.json({ attemptId: attempt.id, alreadyFinished: Boolean(attempt.finishedAt) });
+  return NextResponse.json({
+    attemptId: attempt.id,
+    alreadyFinished: Boolean(attempt.finishedAt),
+    hasVideo: Boolean(campaign.videoUrl),
+  });
 }

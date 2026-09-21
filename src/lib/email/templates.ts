@@ -52,13 +52,19 @@ export function certificateEmail(params: {
   firstName: string;
   questionnaireTitle: string;
   score: number;
+  gradeOutOf10?: number;
 }) {
+  const scoreLine =
+    params.gradeOutOf10 !== undefined
+      ? `Votre note : <strong style="color:#E91E8C;font-size:18px;">${params.gradeOutOf10}/10</strong>`
+      : `Votre score final : <strong style="color:#E91E8C;font-size:18px;">${params.score} points</strong>`;
+
   return wrapper(
     "Votre certificat est prêt",
     `
     <p>Bonjour ${params.firstName},</p>
     <p>Bravo pour avoir complété le questionnaire <strong>${params.questionnaireTitle}</strong> !</p>
-    <p>Votre score final : <strong style="color:#E91E8C;font-size:18px;">${params.score} points</strong></p>
+    <p>${scoreLine}</p>
     <p>Vous trouverez votre certificat en pièce jointe de cet email.</p>
   `
   );

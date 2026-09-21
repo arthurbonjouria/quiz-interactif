@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { EditCampaignForm } from "@/components/admin/EditCampaignForm";
+import { VideoUploadField } from "@/components/admin/VideoUploadField";
 
 export default async function EditCampaignPage({ params }: { params: { id: string } }) {
   const campaign = await prisma.campaign.findUnique({
@@ -27,6 +28,7 @@ export default async function EditCampaignPage({ params }: { params: { id: strin
           active: campaign.active,
         }}
       />
+      <VideoUploadField campaignId={campaign.id} currentVideoUrl={campaign.videoUrl} />
     </div>
   );
 }

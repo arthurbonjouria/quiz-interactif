@@ -16,7 +16,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
   const { questionId, choiceIndex, responseTimeMs } = parsed.data;
 
-  const attempt = await prisma.attempt.findUnique({ where: { id: params.id } });
+  const attempt = await prisma.attempt.findUnique({
+    where: { id: params.id },
+    include: { campaign: { select: { videoUrl: true } } },
+  });
   if (!attempt) return NextResponse.json({ error: "Tentative introuvable" }, { status: 404 });
   if (attempt.finishedAt) return NextResponse.json({ error: "Tentative déjà terminée" }, { status: 409 });
 
@@ -36,12 +39,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const clampedTime = Math.min(Math.max(responseTimeMs, 0), question.timeLimitSec * 1000);
   const correct = choiceIndex !== null && choiceIndex === question.correctIndex;
-  const pointsEarned = computeScore({
-    correct,
-    points: question.points,
-    responseTimeMs: clampedTime,
-    timeLimitSec: question.timeLimitSec,
-  });
+
+  // Les campagnes avec vidéo obligatoire sont notées sur 10 (bonnes réponses / total) :
+  // pas de bonus de rapidité, chaque bonne réponse vaut son plein point.
+  const isGraded = Boolean(attempt.campaign.videoUrl);
+  const pointsEarned = isGraded
+    ? correct
+      ? question.points
+      : 0
+    : computeScore({
+        correct,
+        points: question.points,
+        responseTimeMs: clampedTime,
+        timeLimitSec: question.timeLimitSec,
+      });
 
   await prisma.$transaction([
     prisma.answer.create({

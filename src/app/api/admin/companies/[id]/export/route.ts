@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { generateRhExportPdf, type RhExportRow } from "@/lib/pdf/rh-export";
 import type { CertificateData } from "@/lib/pdf/certificate";
+import { computeGradeOutOf10 } from "@/lib/grade";
 
 const CATEGORY_LABELS: Record<string, string> = {
   POSITIONNEMENT: "Positionnement",
@@ -27,19 +28,28 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     },
     include: {
       participant: true,
-      campaign: { include: { questionnaire: true } },
+      campaign: { include: { questionnaire: { include: { questions: true } } } },
       certificate: true,
+      answers: true,
     },
     orderBy: { finishedAt: "asc" },
   });
 
-  const rows: RhExportRow[] = attempts.map((a) => ({
-    fullName: `${a.participant.firstName} ${a.participant.lastName}`,
-    email: a.participant.email,
-    score: a.totalScore,
-    date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
-    status: "Terminé",
-  }));
+  const gradeFor = (a: (typeof attempts)[number]) =>
+    a.campaign.videoUrl
+      ? computeGradeOutOf10(a.answers.filter((ans) => ans.correct).length, a.campaign.questionnaire.questions.length)
+      : null;
+
+  const rows: RhExportRow[] = attempts.map((a) => {
+    const grade = gradeFor(a);
+    return {
+      fullName: `${a.participant.firstName} ${a.participant.lastName}`,
+      email: a.participant.email,
+      score: grade !== null ? grade : a.totalScore,
+      date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
+      status: "Terminé",
+    };
+  });
 
   const certificates: CertificateData[] = attempts.map((a) => ({
     firstName: a.participant.firstName,
@@ -48,6 +58,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     questionnaireTitle: a.campaign.questionnaire.title,
     category: CATEGORY_LABELS[a.campaign.questionnaire.category] ?? a.campaign.questionnaire.category,
     score: a.totalScore,
+    gradeOutOf10: gradeFor(a) ?? undefined,
     date: a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-",
   }));
 
