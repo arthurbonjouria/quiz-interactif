@@ -91,6 +91,29 @@ export function folderInviteEmail(params: {
   );
 }
 
+export function reminderEmail(params: {
+  firstName: string;
+  questionnaireTitle: string;
+  campaignCode: string;
+}) {
+  return wrapper(
+    "Votre formation vous attend",
+    `
+    <p>Bonjour ${params.firstName},</p>
+    <p>
+      Vous avez commencé le questionnaire <strong>${params.questionnaireTitle}</strong> mais ne l'avez pas encore terminé.
+      Cela ne prend que quelques minutes — reprenez où vous en étiez :
+    </p>
+    <p style="margin:24px 0;">
+      <a href="${SITE_URL}/s/${params.campaignCode}" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;background:#E83967;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:bold;">
+        Reprendre mon questionnaire
+      </a>
+    </p>
+    <p style="font-size:12px;color:#8A8681;">Si vous avez déjà terminé entre-temps, ignorez cet email.</p>
+  `
+  );
+}
+
 export function certificateEmail(params: {
   firstName: string;
   questionnaireTitle: string;

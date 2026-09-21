@@ -119,6 +119,7 @@ model Attempt {
   startedAt     DateTime     @default(now())
   finishedAt    DateTime?
   totalScore    Int          @default(0)
+  lastReminderAt DateTime?
   answers       Answer[]
   certificate   Certificate?
 }
