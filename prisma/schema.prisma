@@ -8,12 +8,16 @@ datasource db {
 }
 
 // Catégories possibles (SQLite ne supporte pas les enums natifs) : POSITIONNEMENT | IA_ACT | ACQUIS
+// role : OWNER (accès total, gère l'équipe) | FORMATEUR (voit uniquement ses campagnes/dossiers)
 model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String     @id @default(cuid())
+  email        String     @unique
   passwordHash String
   name         String
-  createdAt    DateTime @default(now())
+  role         String     @default("FORMATEUR")
+  createdAt    DateTime   @default(now())
+  campaigns    Campaign[]
+  folders      Folder[]
 }
 
 model Company {
@@ -43,6 +47,8 @@ model Folder {
   id          String           @id @default(cuid())
   title       String
   description String?
+  createdById String?
+  createdBy   AdminUser?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt   DateTime         @default(now())
   campaigns   FolderCampaign[]
   access      FolderAccess[]
@@ -103,6 +109,8 @@ model Campaign {
   endsAt          DateTime?
   active          Boolean       @default(true)
   videoUrl        String?
+  createdById     String?
+  createdBy       AdminUser?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt       DateTime      @default(now())
   attempts        Attempt[]
   liveSessions    LiveSession[]

@@ -1,0 +1,66 @@
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
+import { NewFormateurForm } from "@/components/admin/NewFormateurForm";
+import { RemoveFormateurButton } from "@/components/admin/RemoveFormateurButton";
+
+export default async function TeamPage() {
+  const session = await auth();
+  if (!isOwner(session)) notFound();
+
+  const team = await prisma.adminUser.findMany({
+    orderBy: { createdAt: "asc" },
+    include: { _count: { select: { campaigns: true, folders: true } } },
+  });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold">Équipe</h1>
+        <p className="text-sm text-neutral-500">
+          Chaque formateur ne voit que les campagnes et dossiers qu&apos;il crée lui-même. Vous voyez tout.
+        </p>
+      </div>
+
+      <NewFormateurForm />
+
+      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
+            <tr>
+              <th className="px-4 py-3">Nom</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Rôle</th>
+              <th className="px-4 py-3">Campagnes</th>
+              <th className="px-4 py-3">Dossiers</th>
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody>
+            {team.map((u) => (
+              <tr key={u.id} className="border-t border-neutral-100">
+                <td className="px-4 py-3 font-medium">{u.name}</td>
+                <td className="px-4 py-3 text-neutral-500">{u.email}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      u.role === "OWNER" ? "bg-soft text-brand" : "bg-neutral-100 text-neutral-600"
+                    }`}
+                  >
+                    {u.role === "OWNER" ? "Propriétaire" : "Formateur"}
+                  </span>
+                </td>
+                <td className="px-4 py-3">{u._count.campaigns}</td>
+                <td className="px-4 py-3">{u._count.folders}</td>
+                <td className="px-4 py-3 text-right">
+                  {u.id !== session?.user?.id && <RemoveFormateurButton id={u.id} name={u.name} />}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

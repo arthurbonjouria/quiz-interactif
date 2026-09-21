@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
 
 const bodySchema = z.object({
   label: z.string().min(1).optional(),
@@ -11,7 +11,7 @@ const bodySchema = z.object({
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
 
   const campaign = await prisma.campaign.findUnique({
@@ -19,13 +19,22 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     include: { questionnaire: true, company: true },
   });
   if (!campaign) return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
+  if (!isOwner(session) && campaign.createdById !== adminId(session)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
 
   return NextResponse.json(campaign);
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
+
+  const existing = await prisma.campaign.findUnique({ where: { id: params.id } });
+  if (!existing) return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
+  if (!isOwner(session) && existing.createdById !== adminId(session)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
 
   const parsed = bodySchema.safeParse(await req.json());
   if (!parsed.success) {

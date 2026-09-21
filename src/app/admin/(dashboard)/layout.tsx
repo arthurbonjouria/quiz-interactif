@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -18,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <SignOutButton />
           </div>
         </div>
-        <AdminNav />
+        <AdminNav isOwner={isOwner(session)} />
         <div className="hidden items-center gap-4 text-sm text-neutral-500 sm:flex">
           <span>{session?.user?.email}</span>
           <SignOutButton />

@@ -4,12 +4,18 @@ import { prisma } from "@/lib/db";
 import { CompanySettingsForm } from "@/components/admin/CompanySettingsForm";
 import { ResendCertificateButton } from "@/components/admin/ResendCertificateButton";
 import { BarChart } from "@/components/admin/BarChart";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
+  const session = await auth();
+  const owner = isOwner(session);
+
   const company = await prisma.company.findUnique({
     where: { id: params.id },
     include: {
       campaigns: {
+        where: owner ? {} : { createdById: session?.user?.id },
         orderBy: { createdAt: "desc" },
         include: {
           questionnaire: { include: { questions: true } },

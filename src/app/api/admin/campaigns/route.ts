@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { customAlphabet } from "nanoid";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
 import { findOrCreateCompanyByDomain } from "@/lib/domain";
 
 const generateCode = customAlphabet("ABCDEFGHJKMNPQRSTUVWXYZ23456789", 7);
@@ -16,10 +16,11 @@ const bodySchema = z.object({
 });
 
 export async function GET() {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
 
   const campaigns = await prisma.campaign.findMany({
+    where: isOwner(session) ? {} : { createdById: adminId(session) },
     orderBy: { createdAt: "desc" },
     include: {
       questionnaire: true,
@@ -32,7 +33,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
       companyId: company.id,
       label,
       code,
+      createdById: adminId(session),
       ...(parsedEndsAt && !isNaN(parsedEndsAt.getTime()) ? { endsAt: parsedEndsAt } : {}),
     },
   });

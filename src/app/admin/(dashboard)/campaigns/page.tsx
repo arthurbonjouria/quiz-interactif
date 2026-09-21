@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { CopyLinkButton } from "@/components/admin/CopyLinkButton";
 import { LaunchLiveButton } from "@/components/admin/LaunchLiveButton";
 import { getCampaignStatus, CAMPAIGN_STATUS_LABELS } from "@/lib/campaign-status";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 const STATUS_BADGE_CLASSES: Record<string, string> = {
   active: "bg-green-100 text-green-700",
@@ -11,9 +13,13 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
 };
 
 export default async function CampaignsPage() {
+  const session = await auth();
+  const owner = isOwner(session);
+
   const campaigns = await prisma.campaign.findMany({
+    where: owner ? {} : { createdById: session?.user?.id },
     orderBy: { createdAt: "desc" },
-    include: { questionnaire: true, company: true, _count: { select: { attempts: true } } },
+    include: { questionnaire: true, company: true, _count: { select: { attempts: true } }, createdBy: true },
   });
 
   return (
@@ -37,6 +43,7 @@ export default async function CampaignsPage() {
               <th className="px-4 py-3">Campagne</th>
               <th className="px-4 py-3">Questionnaire</th>
               <th className="px-4 py-3">Entreprise</th>
+              {owner && <th className="px-4 py-3">Formateur</th>}
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Participants</th>
               <th className="px-4 py-3">Lien</th>
@@ -55,6 +62,7 @@ export default async function CampaignsPage() {
                       {c.company.name}
                     </Link>
                   </td>
+                  {owner && <td className="px-4 py-3 text-neutral-500">{c.createdBy?.name ?? "—"}</td>}
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[status]}`}>
                       {CAMPAIGN_STATUS_LABELS[status]}
@@ -77,7 +85,7 @@ export default async function CampaignsPage() {
             })}
             {campaigns.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">
+                <td colSpan={owner ? 8 : 7} className="px-4 py-8 text-center text-neutral-400">
                   Aucune campagne pour l&apos;instant.
                 </td>
               </tr>

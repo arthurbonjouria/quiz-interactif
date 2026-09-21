@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
 import { formatDisplayName } from "@/lib/display-name";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin();
+  const { session: adminSession, response } = await requireAdmin();
   if (response) return response;
 
   const session = await prisma.liveSession.findUnique({
@@ -27,6 +27,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
 
   if (!session) return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
+  if (!isOwner(adminSession) && session.campaign.createdById !== adminId(adminSession)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
 
   const questions = session.campaign.questionnaire.questions;
   const currentQuestion = questions[session.currentIndex] ?? null;

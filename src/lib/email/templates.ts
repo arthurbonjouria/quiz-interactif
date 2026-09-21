@@ -114,6 +114,24 @@ export function reminderEmail(params: {
   );
 }
 
+export function formateurInviteEmail(params: { firstName: string; email: string; password: string }) {
+  return wrapper(
+    "Votre accès au back-office BONJOUR IA",
+    `
+    <p>Bonjour ${params.firstName},</p>
+    <p>Un compte formateur vient d'être créé pour vous sur la plateforme de quiz BONJOUR IA.</p>
+    <div style="margin:20px 0;padding:16px 20px;background:#F4F3EE;border-radius:8px;">
+      <p style="margin:0 0 4px;font-size:13px;"><strong>Identifiant :</strong> ${params.email}</p>
+      <p style="margin:0 0 12px;font-size:13px;"><strong>Mot de passe :</strong> ${params.password}</p>
+      <a href="${SITE_URL}/admin/login" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;background:#E83967;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:bold;">
+        Accéder au back-office
+      </a>
+    </div>
+    <p style="font-size:12px;color:#8A8681;">Vous ne verrez que les campagnes et dossiers que vous créez vous-même.</p>
+  `
+  );
+}
+
 export function certificateEmail(params: {
   firstName: string;
   questionnaireTitle: string;

@@ -2,17 +2,26 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { StatCard } from "@/components/admin/StatCard";
 import { BookOpen, Target, Radio, FolderOpen, type LucideIcon } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function AdminDashboardPage() {
+  const session = await auth();
+  const owner = isOwner(session);
+  const campaignScope = owner ? {} : { createdById: session?.user?.id };
+
   const [companyCount, participantCount, finishedAttempts, campaigns, questionnaires, answerStats, folders] =
     await Promise.all([
       prisma.company.count({ where: { isPersonal: false } }),
       prisma.participant.count(),
-      prisma.attempt.findMany({ where: { finishedAt: { not: null } }, select: { totalScore: true } }),
-      prisma.campaign.count(),
+      prisma.attempt.findMany({
+        where: { finishedAt: { not: null }, campaign: campaignScope },
+        select: { totalScore: true },
+      }),
+      prisma.campaign.count({ where: campaignScope }),
       prisma.questionnaire.count(),
-      prisma.answer.groupBy({ by: ["correct"], _count: { _all: true } }),
-      prisma.folder.count(),
+      prisma.answer.groupBy({ by: ["correct"], _count: { _all: true }, where: { attempt: { campaign: campaignScope } } }),
+      prisma.folder.count({ where: campaignScope }),
     ]);
 
   const avgScore =

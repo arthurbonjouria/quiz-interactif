@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function FoldersPage() {
+  const session = await auth();
+  const owner = isOwner(session);
+
   const folders = await prisma.folder.findMany({
+    where: owner ? {} : { createdById: session?.user?.id },
     orderBy: { createdAt: "desc" },
     include: { campaigns: true, access: true },
   });

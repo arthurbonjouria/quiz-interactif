@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireLiveSessionAccess } from "@/lib/require-admin";
 import { finishAttempt } from "@/lib/finish-attempt";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin();
+  const { response } = await requireLiveSessionAccess(params.id);
   if (response) return response;
 
   const session = await prisma.liveSession.findUnique({

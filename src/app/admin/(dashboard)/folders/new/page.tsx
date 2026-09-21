@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/db";
 import { NewFolderForm } from "@/components/admin/NewFolderForm";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function NewFolderPage() {
+  const session = await auth();
   const campaigns = await prisma.campaign.findMany({
+    where: isOwner(session) ? {} : { createdById: session?.user?.id },
     orderBy: { createdAt: "desc" },
     include: { questionnaire: true, company: true },
   });

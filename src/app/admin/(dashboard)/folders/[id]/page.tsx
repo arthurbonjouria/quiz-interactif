@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { InviteToFolderForm } from "@/components/admin/InviteToFolderForm";
+import { auth } from "@/lib/auth";
+import { isOwner } from "@/lib/require-admin";
 
 export default async function FolderDetailPage({ params }: { params: { id: string } }) {
+  const session = await auth();
   const folder = await prisma.folder.findUnique({
     where: { id: params.id },
     include: {
@@ -12,6 +15,7 @@ export default async function FolderDetailPage({ params }: { params: { id: strin
   });
 
   if (!folder) notFound();
+  if (!isOwner(session) && folder.createdById !== session?.user?.id) notFound();
 
   return (
     <div className="flex flex-col gap-8">

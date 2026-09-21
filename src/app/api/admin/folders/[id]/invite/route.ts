@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
 import { findOrCreateCompanyForEmail } from "@/lib/domain";
 import { ensureStudentAccount } from "@/lib/student-account";
 import { sendEmail } from "@/lib/email/client";
@@ -20,7 +20,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -31,6 +31,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     include: { campaigns: { include: { campaign: { include: { questionnaire: true } } } } },
   });
   if (!folder) return NextResponse.json({ error: "Dossier introuvable" }, { status: 404 });
+  if (!isOwner(session) && folder.createdById !== adminId(session)) {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
 
   const courseTitles = folder.campaigns.map((fc) => fc.campaign.questionnaire.title);
 
