@@ -1,15 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
-
-const NAV = [
-  { href: "/admin", label: "Tableau de bord" },
-  { href: "/admin/questionnaires", label: "Questionnaires" },
-  { href: "/admin/campaigns", label: "Campagnes" },
-  { href: "/admin/companies", label: "Entreprises" },
-  { href: "/admin/participants", label: "Participants" },
-  { href: "/admin/folders", label: "Dossiers" },
-];
+import { AdminNav } from "@/components/admin/AdminNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -26,13 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <SignOutButton />
           </div>
         </div>
-        <nav className="-mx-4 flex gap-4 overflow-x-auto whitespace-nowrap px-4 text-sm sm:mx-0 sm:gap-5 sm:overflow-visible sm:px-0">
-          {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="shrink-0 text-neutral-600 hover:text-ink">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <AdminNav />
         <div className="hidden items-center gap-4 text-sm text-neutral-500 sm:flex">
           <span>{session?.user?.email}</span>
           <SignOutButton />

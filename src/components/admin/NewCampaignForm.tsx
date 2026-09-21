@@ -5,9 +5,19 @@ import { useRouter } from "next/navigation";
 
 type Questionnaire = { id: string; title: string; category: string };
 
-export function NewCampaignForm({ questionnaires }: { questionnaires: Questionnaire[] }) {
+export function NewCampaignForm({
+  questionnaires,
+  defaultQuestionnaireId,
+}: {
+  questionnaires: Questionnaire[];
+  defaultQuestionnaireId?: string;
+}) {
   const router = useRouter();
-  const [questionnaireId, setQuestionnaireId] = useState(questionnaires[0]?.id ?? "");
+  const [questionnaireId, setQuestionnaireId] = useState(
+    defaultQuestionnaireId && questionnaires.some((q) => q.id === defaultQuestionnaireId)
+      ? defaultQuestionnaireId
+      : (questionnaires[0]?.id ?? "")
+  );
   const [label, setLabel] = useState("");
   const [companyDomain, setCompanyDomain] = useState("");
   const [companyName, setCompanyName] = useState("");

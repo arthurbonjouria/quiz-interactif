@@ -16,14 +16,17 @@ export default async function QuestionnairesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Questionnaires</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Questionnaires</h1>
+          <p className="text-sm text-neutral-500">Vos banques de questions, réutilisables pour plusieurs campagnes.</p>
+        </div>
         <Link href="/admin/questionnaires/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">
           + Nouveau questionnaire
         </Link>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[560px] text-left text-sm">
+        <table className="w-full min-w-[620px] text-left text-sm">
           <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
             <tr>
               <th className="px-4 py-3">Titre</th>
@@ -40,10 +43,18 @@ export default async function QuestionnairesPage() {
                 <td className="px-4 py-3">{CATEGORY_LABELS[q.category] ?? q.category}</td>
                 <td className="px-4 py-3">{q._count.questions}</td>
                 <td className="px-4 py-3">{q._count.campaigns}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/questionnaires/${q.id}`} className="text-brand hover:underline">
-                    Ouvrir
-                  </Link>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-3">
+                    <Link
+                      href={`/admin/campaigns/new?questionnaireId=${q.id}`}
+                      className="text-neutral-500 hover:text-ink"
+                    >
+                      + Campagne
+                    </Link>
+                    <Link href={`/admin/questionnaires/${q.id}`} className="text-brand hover:underline">
+                      Ouvrir
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}

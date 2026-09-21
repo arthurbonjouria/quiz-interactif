@@ -12,7 +12,12 @@ export default async function CompaniesPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold">Entreprises</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Entreprises</h1>
+        <p className="text-sm text-neutral-500">
+          Regroupées automatiquement selon le domaine email des participants.
+        </p>
+      </div>
 
       <CompanyTable title="Entreprises clientes" companies={business} />
       {personal.length > 0 && (

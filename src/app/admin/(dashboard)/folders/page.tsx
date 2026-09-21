@@ -10,7 +10,12 @@ export default async function FoldersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dossiers de cours</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Dossiers de cours</h1>
+          <p className="text-sm text-neutral-500">
+            Regroupez plusieurs campagnes et envoyez les accès par email à vos étudiants en une fois.
+          </p>
+        </div>
         <Link href="/admin/folders/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">
           + Nouveau dossier
         </Link>
