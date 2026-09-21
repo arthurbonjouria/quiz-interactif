@@ -5,6 +5,7 @@ import { findOrCreateCompanyForEmail } from "@/lib/domain";
 import { sendEmail } from "@/lib/email/client";
 import { registrationConfirmationEmail } from "@/lib/email/templates";
 import { getCampaignStatus } from "@/lib/campaign-status";
+import { ensureStudentAccount } from "@/lib/student-account";
 
 const bodySchema = z.object({
   code: z.string().min(1),
@@ -50,10 +51,17 @@ export async function POST(req: Request) {
       data: { participantId: participant.id, campaignId: campaign.id },
     }));
 
+  const newPassword = await ensureStudentAccount(participant.id, participant.passwordHash);
+
   sendEmail({
     to: email,
     subject: "Confirmation de votre inscription — BONJOUR IA",
-    html: registrationConfirmationEmail({ firstName, questionnaireTitle: campaign.questionnaire.title }),
+    html: registrationConfirmationEmail({
+      firstName,
+      questionnaireTitle: campaign.questionnaire.title,
+      studentEmail: email,
+      studentPassword: newPassword ?? undefined,
+    }),
   }).catch((err) => console.error("[email] échec envoi confirmation", err));
 
   return NextResponse.json({

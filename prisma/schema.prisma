@@ -27,14 +27,45 @@ model Company {
 }
 
 model Participant {
-  id        String     @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String     @unique
-  companyId String
-  company   Company    @relation(fields: [companyId], references: [id])
-  attempts  Attempt[]
-  createdAt DateTime   @default(now())
+  id           String         @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  passwordHash String?
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id])
+  attempts     Attempt[]
+  folderAccess FolderAccess[]
+  createdAt    DateTime       @default(now())
+}
+
+model Folder {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime         @default(now())
+  campaigns   FolderCampaign[]
+  access      FolderAccess[]
+}
+
+model FolderCampaign {
+  folderId   String
+  folder     Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@id([folderId, campaignId])
+}
+
+model FolderAccess {
+  id            String      @id @default(cuid())
+  folderId      String
+  folder        Folder      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  invitedAt     DateTime    @default(now())
+
+  @@unique([folderId, participantId])
 }
 
 model Questionnaire {
@@ -74,6 +105,7 @@ model Campaign {
   createdAt       DateTime      @default(now())
   attempts        Attempt[]
   liveSessions    LiveSession[]
+  folders         FolderCampaign[]
 }
 
 model Attempt {
