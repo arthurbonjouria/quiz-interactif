@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Logo } from "@/components/Logo";
 
 export default function AdminLoginPage() {
@@ -57,7 +58,16 @@ export default function AdminLoginPage() {
             {loading ? "Connexion…" : "Se connecter"}
           </button>
         </form>
+        <p className="mt-6 text-center text-xs text-neutral-400">
+          Pas encore de compte ?{" "}
+          <Link href="/formateur/inscription" className="font-medium text-brand hover:underline">
+            Demander un accès
+          </Link>
+        </p>
       </div>
+      <Link href="/" className="mt-6 text-xs text-white/60 hover:text-white">
+        ← Retour à l&apos;accueil
+      </Link>
     </main>
   );
 }

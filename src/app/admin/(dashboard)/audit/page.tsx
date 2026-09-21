@@ -11,6 +11,7 @@ const ACTION_LABELS: Record<string, string> = {
   "certificate.resend": "Certificat renvoyé",
   "team.create": "Formateur ajouté",
   "team.delete": "Formateur supprimé",
+  "access_request.reject": "Demande d'accès refusée",
   "reminder.sent": "Relances automatiques",
 };
 

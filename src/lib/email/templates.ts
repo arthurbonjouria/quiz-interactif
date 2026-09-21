@@ -132,6 +132,22 @@ export function formateurInviteEmail(params: { firstName: string; email: string;
   );
 }
 
+export function accessRequestNotificationEmail(params: { requesterName: string; requesterEmail: string; message?: string }) {
+  return wrapper(
+    "Nouvelle demande d'accès formateur",
+    `
+    <p>Bonjour,</p>
+    <p><strong>${params.requesterName}</strong> (${params.requesterEmail}) a demandé un accès formateur au back-office BONJOUR IA.</p>
+    ${params.message ? `<p style="padding:12px 16px;background:#F4F3EE;border-radius:8px;font-size:13px;">${params.message}</p>` : ""}
+    <p style="margin:24px 0;">
+      <a href="${SITE_URL}/admin/team" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;background:#E83967;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:bold;">
+        Voir la demande
+      </a>
+    </p>
+  `
+  );
+}
+
 export function certificateEmail(params: {
   firstName: string;
   questionnaireTitle: string;

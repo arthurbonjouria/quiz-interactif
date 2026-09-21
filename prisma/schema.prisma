@@ -160,6 +160,17 @@ model Answer {
   @@unique([attemptId, questionId])
 }
 
+// status : PENDING | APPROVED | REJECTED
+model AccessRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  handledAt DateTime?
+}
+
 model AuditLog {
   id          String   @id @default(cuid())
   actorId     String?

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Logo } from "@/components/Logo";
 
 export default function StudentLoginPage() {
@@ -62,6 +63,9 @@ export default function StudentLoginPage() {
           Vos identifiants vous ont été envoyés par email lors de votre inscription à un cours.
         </p>
       </div>
+      <Link href="/" className="mt-6 text-xs text-neutral-400 hover:text-ink">
+        ← Retour à l&apos;accueil
+      </Link>
     </main>
   );
 }

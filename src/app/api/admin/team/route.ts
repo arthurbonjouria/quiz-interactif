@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { customAlphabet } from "nanoid";
 import { prisma } from "@/lib/db";
 import { requireOwner } from "@/lib/require-admin";
-import { sendEmail } from "@/lib/email/client";
-import { formateurInviteEmail } from "@/lib/email/templates";
+import { createFormateurAccount } from "@/lib/formateur-account";
 import { logAudit } from "@/lib/audit";
-
-const generatePassword = customAlphabet("ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789", 10);
 
 const bodySchema = z.object({
   name: z.string().min(1),
@@ -43,21 +38,8 @@ export async function POST(req: Request) {
 
   const { name, email } = parsed.data;
 
-  const existing = await prisma.adminUser.findUnique({ where: { email } });
-  if (existing) return NextResponse.json({ error: "Un compte existe déjà avec cet email." }, { status: 409 });
-
-  const password = generatePassword();
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const formateur = await prisma.adminUser.create({
-    data: { name, email, passwordHash, role: "FORMATEUR" },
-  });
-
-  sendEmail({
-    to: email,
-    subject: "Votre accès au back-office — BONJOUR IA",
-    html: formateurInviteEmail({ firstName: name.split(" ")[0], email, password }),
-  }).catch((err) => console.error("[email] échec envoi invitation formateur", err));
+  const formateur = await createFormateurAccount(name, email);
+  if (!formateur) return NextResponse.json({ error: "Un compte existe déjà avec cet email." }, { status: 409 });
 
   await logAudit({
     session,
