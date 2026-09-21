@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { LiveGameClient } from "@/components/quiz/LiveGameClient";
+import { Logo } from "@/components/Logo";
 
 export default function LiveGamePage({
   params,
@@ -19,6 +20,7 @@ export default function LiveGamePage({
         className="animate-float-blob pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl"
         style={{ animationDelay: "2s" }}
       />
+      <Logo variant="light" className="relative mb-6 h-6" />
       <LiveGameClient pin={params.pin} attemptId={searchParams.attempt} />
     </main>
   );

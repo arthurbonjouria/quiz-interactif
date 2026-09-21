@@ -1,8 +1,8 @@
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { CertificateBody, type CertificateData } from "./certificate";
+import { LOGO_BLANC_ROSE_BASE64 } from "./logo-base64";
 
 const INK = "#0A0A0A";
-const BRAND = "#E91E8C";
 
 const styles = StyleSheet.create({
   coverPage: {
@@ -15,12 +15,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   brand: {
-    fontSize: 20,
-    fontWeight: 700,
-    color: "#FFFFFF",
-  },
-  brandAccent: {
-    color: BRAND,
+    height: 26,
+    width: 52,
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 11,
@@ -120,9 +117,7 @@ function RhExportDocument({ data }: { data: RhExportData }) {
     <Document>
       <Page size="A4" style={styles.coverPage}>
         <View style={styles.header}>
-          <Text style={styles.brand}>
-            BONJOUR <Text style={styles.brandAccent}>IA</Text>
-          </Text>
+          <Image style={styles.brand} src={LOGO_BLANC_ROSE_BASE64} />
           <Text style={styles.subtitle}>
             Récapitulatif — {data.companyName} — {data.campaignLabel}
           </Text>

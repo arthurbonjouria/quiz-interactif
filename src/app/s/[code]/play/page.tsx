@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { PlayClient } from "@/components/quiz/PlayClient";
+import { Logo } from "@/components/Logo";
 
 export default function PlayPage({
   params,
@@ -19,6 +20,7 @@ export default function PlayPage({
         className="animate-float-blob pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl"
         style={{ animationDelay: "2s" }}
       />
+      <Logo variant="light" className="relative mb-6 h-6" />
       <PlayClient attemptId={searchParams.attempt} code={params.code} />
     </main>
   );

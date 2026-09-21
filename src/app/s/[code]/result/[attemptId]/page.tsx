@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { Logo } from "@/components/Logo";
 
 export default async function ResultPage({
   params,
@@ -28,6 +29,7 @@ export default async function ResultPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-12 text-center">
+      <Logo className="h-8" />
       <p className="text-xs font-semibold uppercase tracking-widest text-brand">Terminé</p>
       <h1 className="text-3xl font-bold">Bravo {attempt.participant.firstName} !</h1>
       <p className="text-neutral-600">{attempt.campaign.questionnaire.title}</p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -28,9 +29,7 @@ export default function AdminLoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-ink px-6">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="mb-1 text-xl font-bold">
-          BONJOUR <span className="text-brand">IA</span>
-        </h1>
+        <Logo className="mb-2 h-9" />
         <p className="mb-6 text-sm text-neutral-500">Back-office</p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input

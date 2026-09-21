@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+import { Logo } from "@/components/Logo";
 
 const NAV = [
   { href: "/admin", label: "Tableau de bord" },
@@ -16,9 +17,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-offwhite">
       <header className="flex flex-col gap-3 border-b border-neutral-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-6 sm:py-4">
         <div className="flex items-center justify-between gap-4 sm:justify-start sm:gap-8">
-          <span className="shrink-0 font-bold">
-            BONJOUR <span className="text-brand">IA</span>
-          </span>
+          <Link href="/admin" className="shrink-0">
+            <Logo className="h-7" />
+          </Link>
           <div className="flex items-center gap-3 text-xs text-neutral-500 sm:hidden">
             <span className="max-w-[140px] truncate">{session?.user?.email}</span>
             <SignOutButton />

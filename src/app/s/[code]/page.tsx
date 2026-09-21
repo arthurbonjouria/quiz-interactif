@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { RegisterForm } from "@/components/quiz/RegisterForm";
 import { getCampaignStatus } from "@/lib/campaign-status";
+import { Logo } from "@/components/Logo";
 
 const CATEGORY_LABELS: Record<string, string> = {
   POSITIONNEMENT: "Positionnement",
@@ -26,6 +27,7 @@ export default async function CampaignLandingPage({ params }: { params: { code: 
         className="animate-float-blob pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl"
         style={{ animationDelay: "2s" }}
       />
+      <Logo variant="light" className="relative h-8" />
       <div className="animate-pop-in relative flex w-full max-w-md flex-col items-center gap-8 rounded-3xl bg-white p-8 shadow-2xl sm:p-10">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand">

@@ -1,4 +1,5 @@
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { LOGO_NOIR_ROSE_BASE64 } from "./logo-base64";
 
 const INK = "#0A0A0A";
 const BRAND = "#E91E8C";
@@ -34,13 +35,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   wordmark: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: INK,
-    letterSpacing: 0.5,
-  },
-  wordmarkAccent: {
-    color: BRAND,
+    height: 22,
+    width: 44,
   },
   categoryPill: {
     backgroundColor: INK,
@@ -182,9 +178,7 @@ export function CertificateBody({ data }: { data: CertificateData }) {
       <View style={styles.ribbonAccent} />
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <Text style={styles.wordmark}>
-            BONJOUR <Text style={styles.wordmarkAccent}>IA</Text>
-          </Text>
+          <Image style={styles.wordmark} src={LOGO_NOIR_ROSE_BASE64} />
           <Text style={styles.categoryPill}>{CATEGORY_LABELS[data.category] ?? data.category.toUpperCase()}</Text>
         </View>
 

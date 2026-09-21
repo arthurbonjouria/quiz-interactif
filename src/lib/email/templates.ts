@@ -1,3 +1,5 @@
+import { LOGO_BLANC_ROSE_BASE64 } from "./logo-base64";
+
 const wrapper = (title: string, body: string) => `
 <!DOCTYPE html>
 <html lang="fr">
@@ -8,7 +10,7 @@ const wrapper = (title: string, body: string) => `
           <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;">
             <tr>
               <td style="background:#0A0A0A;padding:24px 32px;">
-                <span style="color:#ffffff;font-size:20px;font-weight:700;">BONJOUR <span style="color:#E91E8C;">IA</span></span>
+                <img src="${LOGO_BLANC_ROSE_BASE64}" alt="BONJOUR IA" height="28" style="display:block;height:28px;width:auto;" />
               </td>
             </tr>
             <tr>
