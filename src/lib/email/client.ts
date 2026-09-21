@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const apiKey = process.env.RESEND_API_KEY;
-const rawFrom = process.env.EMAIL_FROM ?? "contact@send-bonjour-ia.fr";
+const rawFrom = process.env.EMAIL_FROM ?? "certificats@contact.bonjour-ai.fr";
 const from = rawFrom.includes("<") ? rawFrom : `BONJOUR IA <${rawFrom}>`;
 
 const resend = apiKey ? new Resend(apiKey) : null;
