@@ -25,11 +25,19 @@ export default async function AuditPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Historique</h1>
-        <p className="text-sm text-neutral-500">
-          Journal des actions effectuées sur la plateforme, pour votre suivi qualité (Qualiopi).
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Historique</h1>
+          <p className="text-sm text-neutral-500">
+            Journal des actions effectuées sur la plateforme, pour votre suivi qualité (Qualiopi).
+          </p>
+        </div>
+        <a
+          href="/api/admin/audit/export"
+          className="shrink-0 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand"
+        >
+          Export PDF
+        </a>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
