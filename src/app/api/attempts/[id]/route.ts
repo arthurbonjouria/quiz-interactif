@@ -31,6 +31,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       id: q.id,
       text: q.text,
       choices: JSON.parse(q.choices) as string[],
+      type: q.type,
       points: q.points,
       timeLimitSec: q.timeLimitSec,
       order: q.order,

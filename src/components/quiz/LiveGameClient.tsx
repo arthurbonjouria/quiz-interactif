@@ -7,10 +7,13 @@ import { Timer } from "./Timer";
 import { Confetti } from "./Confetti";
 import { Frown, PartyPopper, Trophy } from "lucide-react";
 
+type QuestionType = "SINGLE" | "BOOLEAN" | "MULTIPLE";
+
 type Question = {
   id: string;
   text: string;
   choices: string[];
+  type: QuestionType;
   points: number;
   timeLimitSec: number;
 };
@@ -34,6 +37,7 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
   const [score, setScore] = useState(0);
   const [remainingMs, setRemainingMs] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [selectedMulti, setSelectedMulti] = useState<number[]>([]);
   const [lastResult, setLastResult] = useState<AnswerResult | null>(null);
 
   const answeredIndexRef = useRef<number>(-1);
@@ -58,7 +62,7 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
   }, [poll]);
 
   const submitAnswer = useCallback(
-    async (choiceIndex: number | null) => {
+    async (choiceIndex: number | null, choiceIndexes: number[] = []) => {
       if (!state?.currentQuestion || submittingRef.current) return;
       if (answeredIndexRef.current === state.currentIndex) return;
       submittingRef.current = true;
@@ -66,11 +70,12 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
 
       const responseTimeMs = Date.now() - questionStartRef.current;
       setSelected(choiceIndex);
+      setSelectedMulti(choiceIndexes);
 
       const res = await fetch(`/api/attempts/${attemptId}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: state.currentQuestion.id, choiceIndex, responseTimeMs }),
+        body: JSON.stringify({ questionId: state.currentQuestion.id, choiceIndex, choiceIndexes, responseTimeMs }),
       });
       const result: AnswerResult = await res.json();
       setLastResult(result);
@@ -80,6 +85,11 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
     [state, attemptId]
   );
 
+  const selectedMultiRef = useRef<number[]>([]);
+  useEffect(() => {
+    selectedMultiRef.current = selectedMulti;
+  }, [selectedMulti]);
+
   // Countdown + reset local state whenever a new question starts.
   useEffect(() => {
     if (!state || state.status !== "QUESTION" || !state.currentQuestion || !state.questionStartedAt) return;
@@ -88,6 +98,7 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
       questionStartRef.current = new Date(state.questionStartedAt).getTime();
       if (answeredIndexRef.current !== state.currentIndex) {
         setSelected(null);
+        setSelectedMulti([]);
         setLastResult(null);
       }
     }
@@ -96,7 +107,13 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
     const tick = () => {
       const elapsed = Date.now() - questionStartRef.current;
       setRemainingMs(Math.max(0, totalMs - elapsed));
-      if (elapsed >= totalMs) submitAnswer(null);
+      if (elapsed >= totalMs) {
+        if (state.currentQuestion?.type === "MULTIPLE") {
+          submitAnswer(null, selectedMultiRef.current);
+        } else {
+          submitAnswer(null);
+        }
+      }
     };
     tick();
     const t = setInterval(tick, 150);
@@ -173,6 +190,12 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
 
   // status === "QUESTION"
   const answeredThisQuestion = answeredIndexRef.current === state.currentIndex;
+  const isMultiple = state.currentQuestion.type === "MULTIPLE";
+
+  function toggleMulti(i: number) {
+    if (answeredThisQuestion) return;
+    setSelectedMulti((cur) => (cur.includes(i) ? cur.filter((c) => c !== i) : [...cur, i]));
+  }
 
   return (
     <div className="flex w-full max-w-2xl flex-col gap-6">
@@ -189,6 +212,11 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
 
       <div className="animate-pop-in rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
         <h2 className="text-center text-xl font-bold text-ink sm:text-2xl">{state.currentQuestion.text}</h2>
+        {isMultiple && !answeredThisQuestion && (
+          <p className="mt-2 text-center text-xs font-medium text-neutral-400">
+            Plusieurs réponses possibles — valide quand tu as fini.
+          </p>
+        )}
       </div>
 
       {answeredThisQuestion && (
@@ -204,11 +232,32 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
             index={i}
             text={choice}
             disabled={answeredThisQuestion}
-            reveal={answeredThisQuestion ? (i === selected ? "correct" : "faded") : "none"}
-            onClick={() => submitAnswer(i)}
+            reveal={
+              answeredThisQuestion
+                ? isMultiple
+                  ? selectedMulti.includes(i)
+                    ? "correct"
+                    : "faded"
+                  : i === selected
+                    ? "correct"
+                    : "faded"
+                : "none"
+            }
+            selected={isMultiple && !answeredThisQuestion && selectedMulti.includes(i)}
+            onClick={() => (isMultiple ? toggleMulti(i) : submitAnswer(i))}
           />
         ))}
       </div>
+
+      {isMultiple && !answeredThisQuestion && (
+        <button
+          onClick={() => submitAnswer(null, selectedMulti)}
+          disabled={selectedMulti.length === 0}
+          className="self-center rounded-xl bg-white px-8 py-3 text-sm font-bold text-ink transition hover:opacity-90 disabled:opacity-40"
+        >
+          Valider
+        </button>
+      )}
     </div>
   );
 }

@@ -7,10 +7,13 @@ import { Timer } from "./Timer";
 import { Confetti } from "./Confetti";
 import { Frown, PartyPopper, Trophy } from "lucide-react";
 
+type QuestionType = "SINGLE" | "BOOLEAN" | "MULTIPLE";
+
 type Question = {
   id: string;
   text: string;
   choices: string[];
+  type: QuestionType;
   points: number;
   timeLimitSec: number;
   order: number;
@@ -36,7 +39,9 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
   const [scoreBump, setScoreBump] = useState(0);
   const [remainingMs, setRemainingMs] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [selectedMulti, setSelectedMulti] = useState<number[]>([]);
   const [correctIndex, setCorrectIndex] = useState<number | null>(null);
+  const [correctIndexes, setCorrectIndexes] = useState<number[]>([]);
   const [lastPoints, setLastPoints] = useState<number | null>(null);
   const [phase, setPhase] = useState<"loading" | "question" | "reveal" | "finishing">("loading");
 
@@ -61,7 +66,9 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
   const startQuestion = useCallback((question: Question) => {
     answeredRef.current = false;
     setSelected(null);
+    setSelectedMulti([]);
     setCorrectIndex(null);
+    setCorrectIndexes([]);
     setLastPoints(null);
     questionStartRef.current = Date.now();
     setRemainingMs(question.timeLimitSec * 1000);
@@ -76,7 +83,7 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
   }, [data, index, startQuestion]);
 
   const submitAnswer = useCallback(
-    async (choiceIndex: number | null) => {
+    async (choiceIndex: number | null, choiceIndexes: number[] = []) => {
       if (answeredRef.current || !data) return;
       answeredRef.current = true;
       const question = data.questions[index];
@@ -85,12 +92,14 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
       const res = await fetch(`/api/attempts/${attemptId}/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: question.id, choiceIndex, responseTimeMs }),
+        body: JSON.stringify({ questionId: question.id, choiceIndex, choiceIndexes, responseTimeMs }),
       });
       const result = await res.json();
 
       setSelected(choiceIndex);
+      setSelectedMulti(choiceIndexes);
       setCorrectIndex(result.correctIndex);
+      setCorrectIndexes(result.correctIndexes ?? []);
       setLastPoints(result.pointsEarned);
       if (result.pointsEarned > 0) {
         setScore((s) => s + result.pointsEarned);
@@ -104,12 +113,17 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
   useEffect(() => {
     if (phase !== "question") return;
     if (remainingMs <= 0) {
-      submitAnswer(null);
+      const question = data?.questions[index];
+      if (question?.type === "MULTIPLE") {
+        submitAnswer(null, selectedMulti);
+      } else {
+        submitAnswer(null);
+      }
       return;
     }
     const t = setTimeout(() => setRemainingMs((m) => Math.max(0, m - 100)), 100);
     return () => clearTimeout(t);
-  }, [phase, remainingMs, submitAnswer]);
+  }, [phase, remainingMs, submitAnswer, data, index, selectedMulti]);
 
   useEffect(() => {
     if (phase !== "reveal" || !data) return;
@@ -135,6 +149,12 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
   }
 
   const question = data.questions[index];
+  const isMultiple = question.type === "MULTIPLE";
+
+  function toggleMulti(i: number) {
+    if (phase !== "question") return;
+    setSelectedMulti((cur) => (cur.includes(i) ? cur.filter((c) => c !== i) : [...cur, i]));
+  }
 
   return (
     <div className="relative flex w-full max-w-2xl flex-col gap-6">
@@ -167,6 +187,11 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
 
       <div key={index} className="animate-pop-in rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
         <h2 className="text-center text-xl font-bold text-ink sm:text-2xl">{question.text}</h2>
+        {isMultiple && phase === "question" && (
+          <p className="mt-2 text-center text-xs font-medium text-neutral-400">
+            Plusieurs réponses possibles — valide quand tu as fini.
+          </p>
+        )}
       </div>
 
       {phase === "reveal" && (
@@ -191,9 +216,15 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
         {question.choices.map((choice, i) => {
           let reveal: "none" | "correct" | "incorrect" | "faded" = "none";
           if (phase === "reveal") {
-            if (i === correctIndex) reveal = "correct";
-            else if (i === selected) reveal = "incorrect";
-            else reveal = "faded";
+            if (isMultiple) {
+              if (correctIndexes.includes(i)) reveal = "correct";
+              else if (selectedMulti.includes(i)) reveal = "incorrect";
+              else reveal = "faded";
+            } else {
+              if (i === correctIndex) reveal = "correct";
+              else if (i === selected) reveal = "incorrect";
+              else reveal = "faded";
+            }
           }
           return (
             <AnswerButton
@@ -202,11 +233,22 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
               text={choice}
               disabled={phase !== "question"}
               reveal={reveal}
-              onClick={() => submitAnswer(i)}
+              selected={isMultiple && phase === "question" && selectedMulti.includes(i)}
+              onClick={() => (isMultiple ? toggleMulti(i) : submitAnswer(i))}
             />
           );
         })}
       </div>
+
+      {isMultiple && phase === "question" && (
+        <button
+          onClick={() => submitAnswer(null, selectedMulti)}
+          disabled={selectedMulti.length === 0}
+          className="self-center rounded-xl bg-white px-8 py-3 text-sm font-bold text-ink transition hover:opacity-90 disabled:opacity-40"
+        >
+          Valider
+        </button>
+      )}
     </div>
   );
 }

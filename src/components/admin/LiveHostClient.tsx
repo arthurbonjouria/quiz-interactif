@@ -10,7 +10,9 @@ type Question = {
   id: string;
   text: string;
   choices: string[];
+  type: "SINGLE" | "BOOLEAN" | "MULTIPLE";
   correctIndex: number;
+  correctIndexes: number[];
   points: number;
   timeLimitSec: number;
 };
@@ -162,7 +164,10 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
             {state.currentQuestion.choices.map((choice, i) => {
               const count = state.answerDistribution[i] ?? 0;
               const total = state.players.length || 1;
-              const isCorrect = i === state.currentQuestion!.correctIndex;
+              const isCorrect =
+                state.currentQuestion!.type === "MULTIPLE"
+                  ? state.currentQuestion!.correctIndexes.includes(i)
+                  : i === state.currentQuestion!.correctIndex;
               return (
                 <div key={i} className="flex items-center gap-3">
                   <div className={`w-40 shrink-0 truncate rounded-lg px-3 py-2 text-sm font-medium text-white ${COLORS[i % COLORS.length]} ${isCorrect ? "ring-2 ring-white" : "opacity-60"}`}>

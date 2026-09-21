@@ -83,13 +83,16 @@ model Questionnaire {
   campaigns Campaign[]
 }
 
+// type : SINGLE (une bonne réponse) | BOOLEAN (vrai/faux) | MULTIPLE (plusieurs bonnes réponses)
 model Question {
   id              String        @id @default(cuid())
   questionnaireId String
   questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
   text            String
   choices         String // JSON-encoded string[]
-  correctIndex    Int
+  type            String        @default("SINGLE")
+  correctIndex    Int // utilisé pour SINGLE / BOOLEAN
+  correctIndexes  String        @default("[]") // JSON-encoded number[], utilisé pour MULTIPLE
   points          Int           @default(1000)
   timeLimitSec    Int           @default(20)
   order           Int           @default(0)
@@ -152,6 +155,7 @@ model Answer {
   questionId     String
   question       Question @relation(fields: [questionId], references: [id])
   choiceIndex    Int?
+  choiceIndexes  String   @default("[]") // JSON-encoded number[], utilisé pour les questions MULTIPLE
   correct        Boolean
   responseTimeMs Int
   pointsEarned   Int

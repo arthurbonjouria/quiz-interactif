@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import { Library } from "lucide-react";
 import { QuestionBankPicker } from "./QuestionBankPicker";
 
+type QuestionType = "SINGLE" | "BOOLEAN" | "MULTIPLE";
+
 type QuestionDraft = {
   text: string;
   choices: string[];
+  type: QuestionType;
   correctIndex: number;
+  correctIndexes: number[];
   points: number;
   timeLimitSec: number;
   tags: string[];
@@ -17,11 +21,19 @@ type QuestionDraft = {
 const EMPTY_QUESTION: QuestionDraft = {
   text: "",
   choices: ["", "", "", ""],
+  type: "SINGLE",
   correctIndex: 0,
+  correctIndexes: [],
   points: 1000,
   timeLimitSec: 20,
   tags: [],
 };
+
+const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
+  { value: "SINGLE", label: "Choix unique" },
+  { value: "BOOLEAN", label: "Vrai / Faux" },
+  { value: "MULTIPLE", label: "Choix multiples" },
+];
 
 const CATEGORIES = [
   { value: "POSITIONNEMENT", label: "Positionnement" },
@@ -60,17 +72,47 @@ export function QuestionnaireEditor({
     );
   }
 
+  function changeType(qIndex: number, type: QuestionType) {
+    setQuestions((qs) =>
+      qs.map((q, i) => {
+        if (i !== qIndex) return q;
+        if (type === "BOOLEAN") {
+          return { ...q, type, choices: ["Vrai", "Faux"], correctIndex: 0, correctIndexes: [] };
+        }
+        if (q.type === "BOOLEAN") {
+          return { ...q, type, choices: ["", "", "", ""], correctIndex: 0, correctIndexes: [] };
+        }
+        return { ...q, type, correctIndex: 0, correctIndexes: [] };
+      })
+    );
+  }
+
+  function toggleMultipleCorrect(qIndex: number, cIndex: number) {
+    setQuestions((qs) =>
+      qs.map((q, i) => {
+        if (i !== qIndex) return q;
+        const has = q.correctIndexes.includes(cIndex);
+        return {
+          ...q,
+          correctIndexes: has ? q.correctIndexes.filter((c) => c !== cIndex) : [...q.correctIndexes, cIndex],
+        };
+      })
+    );
+  }
+
   function addQuestion() {
     setQuestions((qs) => [...qs, { ...EMPTY_QUESTION }]);
   }
 
-  function importFromBank(imported: { text: string; choices: string[]; correctIndex: number; points: number; timeLimitSec: number; tags: string[] }[]) {
+  function importFromBank(imported: QuestionDraft[]) {
     setQuestions((qs) => [
       ...qs,
       ...imported.map((q) => ({
         text: q.text,
         choices: q.choices,
+        type: q.type,
         correctIndex: q.correctIndex,
+        correctIndexes: q.correctIndexes,
         points: q.points,
         timeLimitSec: q.timeLimitSec,
         tags: q.tags,
@@ -147,13 +189,26 @@ export function QuestionnaireEditor({
       <div className="flex flex-col gap-4">
         {questions.map((q, qi) => (
           <div key={qi} className="rounded-xl border border-neutral-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <span className="text-xs font-semibold uppercase text-neutral-400">Question {qi + 1}</span>
-              {questions.length > 1 && (
-                <button type="button" onClick={() => removeQuestion(qi)} className="text-xs text-red-600 hover:underline">
-                  Supprimer
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                <select
+                  value={q.type}
+                  onChange={(e) => changeType(qi, e.target.value as QuestionType)}
+                  className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-brand focus:outline-none"
+                >
+                  {QUESTION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                {questions.length > 1 && (
+                  <button type="button" onClick={() => removeQuestion(qi)} className="text-xs text-red-600 hover:underline">
+                    Supprimer
+                  </button>
+                )}
+              </div>
             </div>
             <input
               required
@@ -162,21 +217,34 @@ export function QuestionnaireEditor({
               onChange={(e) => updateQuestion(qi, { text: e.target.value })}
               className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
             />
+            {q.type === "MULTIPLE" && (
+              <p className="mb-2 text-xs text-neutral-400">Coche toutes les bonnes réponses (au moins une).</p>
+            )}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {q.choices.map((choice, ci) => (
                 <div key={ci} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name={`correct-${qi}`}
-                    checked={q.correctIndex === ci}
-                    onChange={() => updateQuestion(qi, { correctIndex: ci })}
-                    title="Bonne réponse"
-                  />
+                  {q.type === "MULTIPLE" ? (
+                    <input
+                      type="checkbox"
+                      checked={q.correctIndexes.includes(ci)}
+                      onChange={() => toggleMultipleCorrect(qi, ci)}
+                      title="Bonne réponse"
+                    />
+                  ) : (
+                    <input
+                      type="radio"
+                      name={`correct-${qi}`}
+                      checked={q.correctIndex === ci}
+                      onChange={() => updateQuestion(qi, { correctIndex: ci })}
+                      title="Bonne réponse"
+                    />
+                  )}
                   <input
                     placeholder={`Proposition ${ci + 1}`}
                     value={choice}
+                    disabled={q.type === "BOOLEAN"}
                     onChange={(e) => updateChoice(qi, ci, e.target.value)}
-                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none disabled:bg-neutral-50 disabled:text-neutral-500"
                   />
                 </div>
               ))}

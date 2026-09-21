@@ -5,7 +5,8 @@ import { computeScore } from "@/lib/scoring";
 
 const bodySchema = z.object({
   questionId: z.string().min(1),
-  choiceIndex: z.number().int().min(0).nullable(),
+  choiceIndex: z.number().int().min(0).nullable().optional(),
+  choiceIndexes: z.array(z.number().int().min(0)).optional(),
   responseTimeMs: z.number().min(0),
 });
 
@@ -14,7 +15,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!parsed.success) {
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
-  const { questionId, choiceIndex, responseTimeMs } = parsed.data;
+  const { questionId, choiceIndex = null, choiceIndexes = [], responseTimeMs } = parsed.data;
 
   const attempt = await prisma.attempt.findUnique({
     where: { id: params.id },
@@ -33,12 +34,26 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({
       correct: existing.correct,
       correctIndex: question.correctIndex,
+      correctIndexes: JSON.parse(question.correctIndexes) as number[],
       pointsEarned: existing.pointsEarned,
     });
   }
 
   const clampedTime = Math.min(Math.max(responseTimeMs, 0), question.timeLimitSec * 1000);
-  const correct = choiceIndex !== null && choiceIndex === question.correctIndex;
+
+  let correct: boolean;
+  let storedChoiceIndex: number | null = null;
+  let storedChoiceIndexes: number[] = [];
+
+  if (question.type === "MULTIPLE") {
+    const submitted = [...choiceIndexes].sort((a, b) => a - b);
+    const expected = (JSON.parse(question.correctIndexes) as number[]).sort((a, b) => a - b);
+    correct = submitted.length === expected.length && submitted.every((v, i) => v === expected[i]);
+    storedChoiceIndexes = submitted;
+  } else {
+    correct = choiceIndex !== null && choiceIndex === question.correctIndex;
+    storedChoiceIndex = choiceIndex;
+  }
 
   // Les campagnes avec vidéo obligatoire sont notées sur 10 (bonnes réponses / total) :
   // pas de bonus de rapidité, chaque bonne réponse vaut son plein point.
@@ -59,7 +74,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       data: {
         attemptId: attempt.id,
         questionId,
-        choiceIndex,
+        choiceIndex: storedChoiceIndex,
+        choiceIndexes: JSON.stringify(storedChoiceIndexes),
         correct,
         responseTimeMs: clampedTime,
         pointsEarned,
@@ -71,5 +87,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }),
   ]);
 
-  return NextResponse.json({ correct, correctIndex: question.correctIndex, pointsEarned });
+  return NextResponse.json({
+    correct,
+    correctIndex: question.correctIndex,
+    correctIndexes: JSON.parse(question.correctIndexes) as number[],
+    pointsEarned,
+  });
 }

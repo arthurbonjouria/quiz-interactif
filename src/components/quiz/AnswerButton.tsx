@@ -15,12 +15,14 @@ export function AnswerButton({
   onClick,
   disabled,
   reveal,
+  selected = false,
 }: {
   index: number;
   text: string;
   onClick: () => void;
   disabled: boolean;
   reveal: Reveal;
+  selected?: boolean;
 }) {
   const color = COLORS[index % COLORS.length];
 
@@ -31,7 +33,9 @@ export function AnswerButton({
         ? "opacity-40 animate-shake-no"
         : reveal === "faded"
           ? "opacity-40"
-          : "hover:scale-[1.03] active:scale-95";
+          : selected
+            ? "ring-4 ring-white/80 scale-[1.03]"
+            : "hover:scale-[1.03] active:scale-95";
 
   return (
     <button

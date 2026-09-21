@@ -45,11 +45,17 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
 
   const answerDistribution = currentQuestion
-    ? currentQuestion.choices
-        ? (JSON.parse(currentQuestion.choices) as string[]).map(
-            (_, i) => session.attempts.flatMap((a) => a.answers).filter((ans) => ans.questionId === currentQuestion.id && ans.choiceIndex === i).length
-          )
-        : []
+    ? (JSON.parse(currentQuestion.choices) as string[]).map((_, i) =>
+        session.attempts
+          .flatMap((a) => a.answers)
+          .filter((ans) => {
+            if (ans.questionId !== currentQuestion.id) return false;
+            if (currentQuestion.type === "MULTIPLE") {
+              return (JSON.parse(ans.choiceIndexes) as number[]).includes(i);
+            }
+            return ans.choiceIndex === i;
+          }).length
+      )
     : [];
 
   return NextResponse.json({
@@ -66,7 +72,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           id: currentQuestion.id,
           text: currentQuestion.text,
           choices: JSON.parse(currentQuestion.choices) as string[],
+          type: currentQuestion.type,
           correctIndex: currentQuestion.correctIndex,
+          correctIndexes: JSON.parse(currentQuestion.correctIndexes) as number[],
           points: currentQuestion.points,
           timeLimitSec: currentQuestion.timeLimitSec,
         }

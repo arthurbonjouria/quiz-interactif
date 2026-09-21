@@ -20,7 +20,9 @@ export default async function EditQuestionnairePage({ params }: { params: { id: 
         initialQuestions={questionnaire.questions.map((q) => ({
           text: q.text,
           choices: JSON.parse(q.choices) as string[],
+          type: q.type as "SINGLE" | "BOOLEAN" | "MULTIPLE",
           correctIndex: q.correctIndex,
+          correctIndexes: JSON.parse(q.correctIndexes) as number[],
           points: q.points,
           timeLimitSec: q.timeLimitSec,
           tags: JSON.parse(q.tags) as string[],

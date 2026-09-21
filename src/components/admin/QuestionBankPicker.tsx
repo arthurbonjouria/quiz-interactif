@@ -7,7 +7,9 @@ type BankQuestion = {
   id: string;
   text: string;
   choices: string[];
+  type: "SINGLE" | "BOOLEAN" | "MULTIPLE";
   correctIndex: number;
+  correctIndexes: number[];
   points: number;
   timeLimitSec: number;
   tags: string[];

@@ -46,6 +46,7 @@ export async function GET(_req: Request, { params }: { params: { pin: string } }
           id: currentQuestion.id,
           text: currentQuestion.text,
           choices: JSON.parse(currentQuestion.choices) as string[],
+          type: currentQuestion.type,
           points: currentQuestion.points,
           timeLimitSec: currentQuestion.timeLimitSec,
         }

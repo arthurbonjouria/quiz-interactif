@@ -2,16 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
-
-const questionSchema = z.object({
-  text: z.string().min(1),
-  choices: z.array(z.string().min(1)).min(2).max(6),
-  correctIndex: z.number().int().min(0),
-  points: z.number().int().min(1).default(1000),
-  timeLimitSec: z.number().int().min(5).default(20),
-  order: z.number().int().default(0),
-  tags: z.array(z.string().min(1)).default([]),
-});
+import { questionSchema, questionCreateData } from "@/lib/question-schema";
 
 const bodySchema = z.object({
   title: z.string().min(1),
@@ -46,15 +37,7 @@ export async function POST(req: Request) {
       title,
       category,
       questions: {
-        create: questions.map((q, i) => ({
-          text: q.text,
-          choices: JSON.stringify(q.choices),
-          correctIndex: q.correctIndex,
-          points: q.points,
-          timeLimitSec: q.timeLimitSec,
-          order: q.order ?? i,
-          tags: JSON.stringify(q.tags),
-        })),
+        create: questions.map((q, i) => questionCreateData(q, i)),
       },
     },
   });
