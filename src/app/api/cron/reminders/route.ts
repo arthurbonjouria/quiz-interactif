@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email/client";
 import { reminderEmail } from "@/lib/email/templates";
 import { getCampaignStatus } from "@/lib/campaign-status";
+import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
   });
 
   let sent = 0;
+  const remindedEmails: string[] = [];
   for (const attempt of candidates) {
     if (getCampaignStatus(attempt.campaign) !== "active") continue;
 
@@ -48,7 +50,17 @@ export async function GET(req: Request) {
     }).catch((err) => console.error("[email] échec envoi relance", err));
 
     await prisma.attempt.update({ where: { id: attempt.id }, data: { lastReminderAt: new Date() } });
+    remindedEmails.push(attempt.participant.email);
     sent += 1;
+  }
+
+  if (sent > 0) {
+    await logAudit({
+      action: "reminder.sent",
+      targetType: "Attempt",
+      targetLabel: `${sent} relance(s) automatique(s)`,
+      metadata: { emails: remindedEmails },
+    });
   }
 
   return NextResponse.json({ checked: candidates.length, sent });

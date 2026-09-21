@@ -3,9 +3,10 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { sendEmail } from "@/lib/email/client";
 import { certificateEmail } from "@/lib/email/templates";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(_req: Request, { params }: { params: { attemptId: string } }) {
-  const { response } = await requireAdmin();
+  const { session, response } = await requireAdmin();
   if (response) return response;
 
   const attempt = await prisma.attempt.findUnique({
@@ -33,6 +34,15 @@ export async function POST(_req: Request, { params }: { params: { attemptId: str
   if (result.sent) {
     await prisma.certificate.update({ where: { id: attempt.certificate.id }, data: { emailedAt: new Date() } });
   }
+
+  await logAudit({
+    session,
+    action: "certificate.resend",
+    targetType: "Attempt",
+    targetId: attempt.id,
+    targetLabel: `${attempt.participant.firstName} ${attempt.participant.lastName} — ${attempt.campaign.questionnaire.title}`,
+    metadata: { sent: result.sent },
+  });
 
   return NextResponse.json({ sent: result.sent });
 }

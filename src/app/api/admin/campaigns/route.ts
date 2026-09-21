@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
 import { findOrCreateCompanyByDomain } from "@/lib/domain";
+import { logAudit } from "@/lib/audit";
 
 const generateCode = customAlphabet("ABCDEFGHJKMNPQRSTUVWXYZ23456789", 7);
 
@@ -62,6 +63,14 @@ export async function POST(req: Request) {
       createdById: adminId(session),
       ...(parsedEndsAt && !isNaN(parsedEndsAt.getTime()) ? { endsAt: parsedEndsAt } : {}),
     },
+  });
+
+  await logAudit({
+    session,
+    action: "campaign.create",
+    targetType: "Campaign",
+    targetId: campaign.id,
+    targetLabel: `${label} (${company.name})`,
   });
 
   return NextResponse.json(campaign, { status: 201 });

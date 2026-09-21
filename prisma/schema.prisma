@@ -160,6 +160,18 @@ model Answer {
   @@unique([attemptId, questionId])
 }
 
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String?
+  actorName   String
+  action      String
+  targetType  String
+  targetId    String?
+  targetLabel String
+  metadata    String? // JSON-encoded, détails optionnels (ex: champs modifiés)
+  createdAt   DateTime @default(now())
+}
+
 model Certificate {
   id         String    @id @default(cuid())
   attemptId  String    @unique

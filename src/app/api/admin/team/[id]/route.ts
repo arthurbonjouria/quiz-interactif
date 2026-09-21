@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireOwner, adminId } from "@/lib/require-admin";
+import { logAudit } from "@/lib/audit";
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const { session, response } = await requireOwner();
@@ -14,5 +15,14 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if (!target) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   await prisma.adminUser.delete({ where: { id: params.id } });
+
+  await logAudit({
+    session,
+    action: "team.delete",
+    targetType: "AdminUser",
+    targetId: target.id,
+    targetLabel: `${target.name} (${target.email})`,
+  });
+
   return NextResponse.json({ ok: true });
 }

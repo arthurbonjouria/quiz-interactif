@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
+import { logAudit } from "@/lib/audit";
 
 const bodySchema = z.object({
   label: z.string().min(1).optional(),
@@ -61,6 +62,25 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(videoUrl !== undefined ? { videoUrl } : {}),
     },
   });
+
+  const changes: Record<string, unknown> = {};
+  if (label !== undefined && label !== existing.label) changes.label = { from: existing.label, to: label };
+  if (active !== undefined && active !== existing.active) changes.active = { from: existing.active, to: active };
+  if (parsedEndsAt !== undefined && parsedEndsAt?.toISOString() !== existing.endsAt?.toISOString()) {
+    changes.endsAt = { from: existing.endsAt, to: parsedEndsAt };
+  }
+  if (videoUrl !== undefined && videoUrl !== existing.videoUrl) changes.videoUrl = "modifié";
+
+  if (Object.keys(changes).length > 0) {
+    await logAudit({
+      session,
+      action: "campaign.update",
+      targetType: "Campaign",
+      targetId: campaign.id,
+      targetLabel: campaign.label,
+      metadata: changes,
+    });
+  }
 
   return NextResponse.json(campaign);
 }

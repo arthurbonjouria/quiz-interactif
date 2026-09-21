@@ -6,6 +6,7 @@ import { findOrCreateCompanyForEmail } from "@/lib/domain";
 import { ensureStudentAccount } from "@/lib/student-account";
 import { sendEmail } from "@/lib/email/client";
 import { folderInviteEmail } from "@/lib/email/templates";
+import { logAudit } from "@/lib/audit";
 
 const bodySchema = z.object({
   invitees: z
@@ -80,6 +81,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     results.push({ email, created: !!password });
   }
+
+  await logAudit({
+    session,
+    action: "folder.invite",
+    targetType: "Folder",
+    targetId: folder.id,
+    targetLabel: folder.title,
+    metadata: { invited: results.map((r) => r.email) },
+  });
 
   return NextResponse.json({ invited: results.length, results });
 }

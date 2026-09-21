@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin, isOwner, adminId } from "@/lib/require-admin";
+import { logAudit } from "@/lib/audit";
 
 const bodySchema = z.object({
   title: z.string().min(1),
@@ -47,6 +48,15 @@ export async function POST(req: Request) {
       createdById: adminId(session),
       campaigns: { create: campaignIds.map((campaignId) => ({ campaignId })) },
     },
+  });
+
+  await logAudit({
+    session,
+    action: "folder.create",
+    targetType: "Folder",
+    targetId: folder.id,
+    targetLabel: title,
+    metadata: { campaignCount: campaignIds.length },
   });
 
   return NextResponse.json(folder, { status: 201 });

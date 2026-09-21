@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, Target, FolderOpen, Building2, Users, UserCog } from "lucide-react";
+import { LayoutDashboard, BookOpen, Target, FolderOpen, Building2, Users, UserCog, History } from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
@@ -15,7 +15,9 @@ const NAV = [
 
 export function AdminNav({ isOwner = false }: { isOwner?: boolean }) {
   const pathname = usePathname();
-  const items = isOwner ? [...NAV, { href: "/admin/team", label: "Équipe", icon: UserCog }] : NAV;
+  const items = isOwner
+    ? [...NAV, { href: "/admin/audit", label: "Historique", icon: History }, { href: "/admin/team", label: "Équipe", icon: UserCog }]
+    : NAV;
 
   return (
     <nav className="-mx-4 flex gap-1 overflow-x-auto whitespace-nowrap px-4 text-sm sm:mx-0 sm:gap-1.5 sm:overflow-visible sm:px-0">

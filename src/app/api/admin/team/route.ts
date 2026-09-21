@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireOwner } from "@/lib/require-admin";
 import { sendEmail } from "@/lib/email/client";
 import { formateurInviteEmail } from "@/lib/email/templates";
+import { logAudit } from "@/lib/audit";
 
 const generatePassword = customAlphabet("ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789", 10);
 
@@ -34,7 +35,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { response } = await requireOwner();
+  const { session, response } = await requireOwner();
   if (response) return response;
 
   const parsed = bodySchema.safeParse(await req.json());
@@ -57,6 +58,14 @@ export async function POST(req: Request) {
     subject: "Votre accès au back-office — BONJOUR IA",
     html: formateurInviteEmail({ firstName: name.split(" ")[0], email, password }),
   }).catch((err) => console.error("[email] échec envoi invitation formateur", err));
+
+  await logAudit({
+    session,
+    action: "team.create",
+    targetType: "AdminUser",
+    targetId: formateur.id,
+    targetLabel: `${name} (${email})`,
+  });
 
   return NextResponse.json({ id: formateur.id, email: formateur.email }, { status: 201 });
 }
