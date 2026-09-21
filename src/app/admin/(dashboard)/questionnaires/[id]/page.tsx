@@ -23,6 +23,7 @@ export default async function EditQuestionnairePage({ params }: { params: { id: 
           correctIndex: q.correctIndex,
           points: q.points,
           timeLimitSec: q.timeLimitSec,
+          tags: JSON.parse(q.tags) as string[],
         }))}
       />
     </div>

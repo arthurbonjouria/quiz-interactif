@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Library } from "lucide-react";
+import { QuestionBankPicker } from "./QuestionBankPicker";
 
 type QuestionDraft = {
   text: string;
@@ -9,6 +11,7 @@ type QuestionDraft = {
   correctIndex: number;
   points: number;
   timeLimitSec: number;
+  tags: string[];
 };
 
 const EMPTY_QUESTION: QuestionDraft = {
@@ -17,6 +20,7 @@ const EMPTY_QUESTION: QuestionDraft = {
   correctIndex: 0,
   points: 1000,
   timeLimitSec: 20,
+  tags: [],
 };
 
 const CATEGORIES = [
@@ -44,6 +48,7 @@ export function QuestionnaireEditor({
   );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   function updateQuestion(index: number, patch: Partial<QuestionDraft>) {
     setQuestions((qs) => qs.map((q, i) => (i === index ? { ...q, ...patch } : q)));
@@ -57,6 +62,20 @@ export function QuestionnaireEditor({
 
   function addQuestion() {
     setQuestions((qs) => [...qs, { ...EMPTY_QUESTION }]);
+  }
+
+  function importFromBank(imported: { text: string; choices: string[]; correctIndex: number; points: number; timeLimitSec: number; tags: string[] }[]) {
+    setQuestions((qs) => [
+      ...qs,
+      ...imported.map((q) => ({
+        text: q.text,
+        choices: q.choices,
+        correctIndex: q.correctIndex,
+        points: q.points,
+        timeLimitSec: q.timeLimitSec,
+        tags: q.tags,
+      })),
+    ]);
   }
 
   function removeQuestion(index: number) {
@@ -183,18 +202,51 @@ export function QuestionnaireEditor({
                   className="w-20 rounded-lg border border-neutral-300 px-2 py-1"
                 />
               </label>
+              <label className="flex flex-1 items-center gap-2">
+                Tags
+                <input
+                  placeholder="ex: RGPD, IA générative"
+                  value={q.tags.join(", ")}
+                  onChange={(e) =>
+                    updateQuestion(qi, {
+                      tags: e.target.value
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  className="w-full rounded-lg border border-neutral-300 px-2 py-1"
+                />
+              </label>
             </div>
           </div>
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={addQuestion}
-        className="self-start rounded-lg border border-dashed border-neutral-400 px-4 py-2 text-sm font-medium text-neutral-600 hover:border-brand hover:text-brand"
-      >
-        + Ajouter une question
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={addQuestion}
+          className="self-start rounded-lg border border-dashed border-neutral-400 px-4 py-2 text-sm font-medium text-neutral-600 hover:border-brand hover:text-brand"
+        >
+          + Ajouter une question
+        </button>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex items-center gap-1.5 self-start rounded-lg border border-dashed border-neutral-400 px-4 py-2 text-sm font-medium text-neutral-600 hover:border-brand hover:text-brand"
+        >
+          <Library size={14} strokeWidth={2} /> Importer depuis la bibliothèque
+        </button>
+      </div>
+
+      {pickerOpen && (
+        <QuestionBankPicker
+          excludeQuestionnaireId={questionnaireId}
+          onImport={importFromBank}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -10,6 +10,7 @@ const questionSchema = z.object({
   points: z.number().int().min(1).default(1000),
   timeLimitSec: z.number().int().min(5).default(20),
   order: z.number().int().default(0),
+  tags: z.array(z.string().min(1)).default([]),
 });
 
 const bodySchema = z.object({
@@ -30,7 +31,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   return NextResponse.json({
     ...questionnaire,
-    questions: questionnaire.questions.map((q) => ({ ...q, choices: JSON.parse(q.choices) })),
+    questions: questionnaire.questions.map((q) => ({
+      ...q,
+      choices: JSON.parse(q.choices),
+      tags: JSON.parse(q.tags),
+    })),
   });
 }
 
@@ -59,6 +64,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             points: q.points,
             timeLimitSec: q.timeLimitSec,
             order: q.order ?? i,
+            tags: JSON.stringify(q.tags),
           })),
         },
       },

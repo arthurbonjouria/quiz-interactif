@@ -87,6 +87,7 @@ model Question {
   points          Int           @default(1000)
   timeLimitSec    Int           @default(20)
   order           Int           @default(0)
+  tags            String        @default("[]") // JSON-encoded string[]
   answers         Answer[]
 }
 
