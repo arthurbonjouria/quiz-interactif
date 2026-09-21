@@ -28,10 +28,9 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-ink px-6">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-offwhite px-6">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <Logo className="mb-2 h-9" />
-        <p className="mb-6 text-sm text-neutral-500">Back-office</p>
+        <Logo className="mb-6 h-9" />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             required
@@ -65,7 +64,7 @@ export default function AdminLoginPage() {
           </Link>
         </p>
       </div>
-      <Link href="/" className="mt-6 text-xs text-white/60 hover:text-white">
+      <Link href="/" className="mt-6 text-xs text-neutral-400 hover:text-ink">
         ← Retour à l&apos;accueil
       </Link>
     </main>
