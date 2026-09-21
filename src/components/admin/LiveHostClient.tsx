@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
+import { Check, PartyPopper, Trophy } from "lucide-react";
 
 type Player = { attemptId: string; name: string; score: number; answeredCurrent: boolean };
 
@@ -79,7 +80,7 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
 
   useEffect(() => {
     if (!joinUrl) return;
-    QRCode.toDataURL(joinUrl, { width: 220, margin: 1, color: { dark: "#0A0A0A", light: "#FFFFFF" } })
+    QRCode.toDataURL(joinUrl, { width: 220, margin: 1, color: { dark: "#2D2D2D", light: "#FFFFFF" } })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(null));
   }, [joinUrl]);
@@ -165,7 +166,7 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
               return (
                 <div key={i} className="flex items-center gap-3">
                   <div className={`w-40 shrink-0 truncate rounded-lg px-3 py-2 text-sm font-medium text-white ${COLORS[i % COLORS.length]} ${isCorrect ? "ring-2 ring-white" : "opacity-60"}`}>
-                    {choice} {isCorrect && "✓"}
+                    {choice} {isCorrect && <Check size={14} className="inline" strokeWidth={3} />}
                   </div>
                   <div className="h-4 flex-1 overflow-hidden rounded-full bg-white/10">
                     <div
@@ -195,7 +196,9 @@ export function LiveHostClient({ sessionId }: { sessionId: string }) {
 
       {state.status === "FINISHED" && (
         <div className="flex flex-col items-center gap-6 text-center">
-          <p className="text-2xl font-bold">🎉 Partie terminée !</p>
+          <p className="flex items-center gap-2 text-2xl font-bold">
+            <PartyPopper size={24} strokeWidth={2} className="text-brand" /> Partie terminée !
+          </p>
           <Podium players={state.players} />
           {state.players.length > 3 && (
             <div className="flex w-full max-w-md flex-col gap-1">
@@ -228,9 +231,10 @@ function Podium({ players }: { players: Player[] }) {
       {order.map((p, col) => {
         if (!p) return <div key={col} className="w-28" />;
         const rank = col === 1 ? 0 : col === 0 ? 1 : 2;
+        const medalColors = ["text-yellow-400", "text-neutral-300", "text-amber-600"];
         return (
           <div key={p.attemptId} className="flex w-28 flex-col items-center gap-2">
-            <span className="text-2xl">{["🥇", "🥈", "🥉"][rank]}</span>
+            <Trophy size={28} strokeWidth={2} className={medalColors[rank]} />
             <span className="max-w-full truncate text-sm font-semibold">{p.name}</span>
             <span className="text-lg font-bold text-brand">{p.score}</span>
             <div className={`w-full rounded-t-lg bg-white/15 ${heights[rank]}`} />

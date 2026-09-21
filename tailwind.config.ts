@@ -5,13 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#0A0A0A",
-        brand: "#E91E8C",
-        offwhite: "#F7F7F8",
+        // Charte graphique officielle BONJOUR IA
+        ink: "#2D2D2D", // Dark — corps de texte principal
+        brand: "#E83967", // Pink BONJOUR IA — accents, CTA, titres
+        offwhite: "#F4F3EE", // Pampas — fond principal
+        cloudy: "#B1ADA1", // Sous-titres, labels, UI secondaire
+        soft: "#F2D5D0", // Rose vieux — fonds doux, hover
       },
       fontFamily: {
-        heading: ["var(--font-poppins)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        heading: ["var(--font-poppins)", "Arial", "sans-serif"],
+        body: ["var(--font-lora)", "Georgia", "serif"],
       },
     },
   },

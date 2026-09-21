@@ -50,7 +50,7 @@ export default async function StudentDashboardPage() {
   return (
     <div className="flex flex-col gap-10 pt-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Bonjour {session?.user?.name?.split(" ")[0]} 👋</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Bonjour {session?.user?.name?.split(" ")[0]}</h1>
         <p className="mt-1 text-neutral-500">Voici l&apos;état de vos cours et de vos résultats.</p>
       </div>
 

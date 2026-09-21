@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnswerButton } from "./AnswerButton";
 import { Timer } from "./Timer";
 import { Confetti } from "./Confetti";
+import { Frown, PartyPopper, Trophy } from "lucide-react";
 
 type Question = {
   id: string;
@@ -126,8 +127,20 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
           Question {state.currentIndex + 1} / {state.totalQuestions}
         </p>
         {lastResult ? (
-          <p className={`animate-pop-in text-xl font-bold ${lastResult.pointsEarned ? "text-green-400" : "text-red-400"}`}>
-            {lastResult.pointsEarned ? `🎉 Bonne réponse ! +${lastResult.pointsEarned} points` : "😬 Pas de points cette fois-ci"}
+          <p
+            className={`animate-pop-in flex items-center justify-center gap-2 text-xl font-bold ${
+              lastResult.pointsEarned ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {lastResult.pointsEarned ? (
+              <>
+                <PartyPopper size={22} strokeWidth={2} /> Bonne réponse ! +{lastResult.pointsEarned} points
+              </>
+            ) : (
+              <>
+                <Frown size={22} strokeWidth={2} /> Pas de points cette fois-ci
+              </>
+            )}
           </p>
         ) : (
           <p className="text-white/70">Réponse révélée sur l&apos;écran principal.</p>
@@ -138,14 +151,17 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
           <div className="mt-2 w-full">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">Top 3</p>
             <div className="flex flex-col gap-1">
-              {state.top3.map((p, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2 text-sm">
-                  <span>
-                    {["🥇", "🥈", "🥉"][i]} {p.name}
-                  </span>
-                  <span className="font-bold">{p.score}</span>
-                </div>
-              ))}
+              {state.top3.map((p, i) => {
+                const medalColors = ["text-yellow-400", "text-neutral-300", "text-amber-600"];
+                return (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2 text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <Trophy size={14} strokeWidth={2} className={medalColors[i]} /> {p.name}
+                    </span>
+                    <span className="font-bold">{p.score}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -164,7 +180,9 @@ export function LiveGameClient({ pin, attemptId }: { pin: string; attemptId: str
         <span className="font-semibold">
           Question {state.currentIndex + 1} / {state.totalQuestions}
         </span>
-        <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-ink">🏆 {score}</span>
+        <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-bold text-ink">
+          <Trophy size={14} strokeWidth={2} className="text-brand" /> {score}
+        </span>
       </div>
 
       <Timer remainingMs={remainingMs} totalMs={state.currentQuestion.timeLimitSec * 1000} />

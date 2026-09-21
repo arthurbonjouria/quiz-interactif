@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnswerButton } from "./AnswerButton";
 import { Timer } from "./Timer";
 import { Confetti } from "./Confetti";
+import { Frown, PartyPopper, Trophy } from "lucide-react";
 
 type Question = {
   id: string;
@@ -156,9 +157,9 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
         </span>
         <span
           key={scoreBump}
-          className="animate-score-pop rounded-full bg-white px-3 py-1 text-sm font-bold text-ink"
+          className="animate-score-pop flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-bold text-ink"
         >
-          🏆 {score}
+          <Trophy size={14} strokeWidth={2} className="text-brand" /> {score}
         </span>
       </div>
 
@@ -170,11 +171,19 @@ export function PlayClient({ attemptId, code }: { attemptId: string; code: strin
 
       {phase === "reveal" && (
         <p
-          className={`animate-pop-in text-center text-lg font-bold ${
+          className={`animate-pop-in flex items-center justify-center gap-2 text-center text-lg font-bold ${
             lastPoints ? "text-green-400" : "text-red-400"
           }`}
         >
-          {lastPoints ? `🎉 Bonne réponse ! +${lastPoints} points` : "😬 Pas de points cette fois-ci"}
+          {lastPoints ? (
+            <>
+              <PartyPopper size={20} strokeWidth={2} /> Bonne réponse ! +{lastPoints} points
+            </>
+          ) : (
+            <>
+              <Frown size={20} strokeWidth={2} /> Pas de points cette fois-ci
+            </>
+          )}
         </p>
       )}
 

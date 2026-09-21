@@ -22,7 +22,7 @@ export default async function CampaignsPage() {
         <div>
           <h1 className="text-2xl font-bold">Campagnes</h1>
           <p className="text-sm text-neutral-500">
-            Un questionnaire donné à une entreprise. Copiez le lien, ou lancez une session live 🔴.
+            Un questionnaire donné à une entreprise. Copiez le lien, ou lancez une session live.
           </p>
         </div>
         <Link href="/admin/campaigns/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">

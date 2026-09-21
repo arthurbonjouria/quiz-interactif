@@ -2,7 +2,7 @@ import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@
 import { CertificateBody, type CertificateData } from "./certificate";
 import { LOGO_BLANC_ROSE_BASE64 } from "./logo-base64";
 
-const INK = "#0A0A0A";
+const INK = "#2D2D2D";
 
 const styles = StyleSheet.create({
   coverPage: {

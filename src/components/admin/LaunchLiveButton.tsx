@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Radio } from "lucide-react";
 
 export function LaunchLiveButton({ campaignId }: { campaignId: string }) {
   const router = useRouter();
@@ -24,9 +25,10 @@ export function LaunchLiveButton({ campaignId }: { campaignId: string }) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand disabled:opacity-50"
+      className="flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:border-brand hover:text-brand disabled:opacity-50"
     >
-      {loading ? "Démarrage…" : "🔴 Session live"}
+      <Radio size={14} strokeWidth={2} />
+      {loading ? "Démarrage…" : "Session live"}
     </button>
   );
 }

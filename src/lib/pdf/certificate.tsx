@@ -1,10 +1,10 @@
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { LOGO_NOIR_ROSE_BASE64 } from "./logo-base64";
 
-const INK = "#0A0A0A";
-const BRAND = "#E91E8C";
-const GRAY = "#666666";
-const LIGHT_GRAY = "#9A9A9A";
+const INK = "#2D2D2D";
+const BRAND = "#E83967";
+const GRAY = "#8A8681";
+const LIGHT_GRAY = "#B1ADA1";
 
 const styles = StyleSheet.create({
   page: {

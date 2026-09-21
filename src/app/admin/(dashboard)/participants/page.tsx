@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { prisma } from "@/lib/db";
 
 const CATEGORIES = [
@@ -222,9 +223,9 @@ function CategoryCell({
   return (
     <Link
       href={`/api/attempts/${status.attemptId}/certificate`}
-      className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 hover:underline"
+      className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 hover:underline"
     >
-      ✓ {status.score} pts
+      <Check size={12} strokeWidth={3} /> {status.score} pts
     </Link>
   );
 }

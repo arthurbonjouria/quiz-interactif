@@ -1,6 +1,6 @@
 "use client";
 
-const COLORS = ["#E91E8C", "#0A0A0A", "#F59E0B", "#22C55E", "#3B82F6"];
+const COLORS = ["#E83967", "#2D2D2D", "#F2D5D0", "#22C55E", "#3B82F6"];
 
 export function Confetti({ count = 24 }: { count?: number }) {
   const pieces = Array.from({ length: count }, (_, i) => i);

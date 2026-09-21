@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 
 export function ResendCertificateButton({ attemptId }: { attemptId: string }) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "stub">("idle");
@@ -13,10 +14,18 @@ export function ResendCertificateButton({ attemptId }: { attemptId: string }) {
   }
 
   return (
-    <button onClick={handleClick} disabled={status === "sending"} className="text-xs font-medium text-brand hover:underline disabled:opacity-50">
+    <button
+      onClick={handleClick}
+      disabled={status === "sending"}
+      className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline disabled:opacity-50"
+    >
       {status === "idle" && "Renvoyer par email"}
       {status === "sending" && "Envoi…"}
-      {status === "sent" && "Envoyé ✓"}
+      {status === "sent" && (
+        <>
+          Envoyé <Check size={12} strokeWidth={3} />
+        </>
+      )}
       {status === "stub" && "Loggé (pas de clé Resend)"}
     </button>
   );
