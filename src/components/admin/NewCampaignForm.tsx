@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Copy, Check } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 type Questionnaire = { id: string; title: string; category: string };
 
@@ -25,6 +30,7 @@ export function NewCampaignForm({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createdLink, setCreatedLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,98 +60,71 @@ export function NewCampaignForm({
 
   if (createdLink) {
     return (
-      <div className="max-w-lg rounded-xl border border-neutral-200 bg-white p-6">
-        <p className="mb-2 text-sm font-medium">Campagne créée. Lien à transmettre :</p>
-        <p className="mb-4 rounded-lg bg-neutral-100 px-4 py-2 font-mono text-sm">{createdLink}</p>
+      <Card className="max-w-lg">
+        <p className="mb-3 text-sm font-semibold text-ink">Campagne créée. Lien à transmettre :</p>
+        <p className="mb-4 break-all rounded-xl bg-soft/50 px-4 py-3 font-mono text-sm text-ink">{createdLink}</p>
         <div className="flex gap-3">
-          <button
-            onClick={() => navigator.clipboard.writeText(createdLink)}
-            className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand"
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(createdLink);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
           >
-            Copier le lien
-          </button>
-          <button onClick={() => router.push("/admin/campaigns")} className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium">
+            {copied ? <Check size={14} strokeWidth={2.5} /> : <Copy size={14} strokeWidth={2} />}
+            {copied ? "Copié" : "Copier le lien"}
+          </Button>
+          <Button variant="secondary" onClick={() => router.push("/admin/campaigns")}>
             Voir les campagnes
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-lg flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6">
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Questionnaire</label>
-        <select
-          required
-          value={questionnaireId}
-          onChange={(e) => setQuestionnaireId(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        >
-          {questionnaires.map((q) => (
-            <option key={q.id} value={q.id}>
-              {q.title}
-            </option>
-          ))}
-        </select>
-      </div>
+    <Card className="max-w-lg">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Field label="Questionnaire">
+          <Select required value={questionnaireId} onChange={(e) => setQuestionnaireId(e.target.value)}>
+            {questionnaires.map((q) => (
+              <option key={q.id} value={q.id}>
+                {q.title}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Nom de la campagne</label>
-        <input
-          required
-          placeholder="Ex. IA Act — Entreprise X — Sept. 2026"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+        <Field label="Nom de la campagne">
+          <Input
+            required
+            placeholder="Ex. IA Act — Entreprise X — Sept. 2026"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Domaine email de l&apos;entreprise cliente</label>
-        <input
-          required
-          placeholder="ex. client.fr"
-          value={companyDomain}
-          onChange={(e) => setCompanyDomain(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+        <Field label="Domaine email de l'entreprise cliente">
+          <Input required placeholder="ex. client.fr" value={companyDomain} onChange={(e) => setCompanyDomain(e.target.value)} />
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">
-          Nom de l&apos;entreprise (optionnel, si nouveau domaine)
-        </label>
-        <input
-          placeholder="Ex. Client SA"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+        <Field label="Nom de l'entreprise" hint="optionnel, si nouveau domaine">
+          <Input placeholder="Ex. Client SA" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Date de fin (optionnel)</label>
-        <input
-          type="date"
-          value={endsAt}
-          onChange={(e) => setEndsAt(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+        <Field label="Date de fin" hint="optionnel">
+          <Input type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+        </Field>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={saving || questionnaires.length === 0}
-        className="self-start rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand disabled:opacity-50"
-      >
-        {saving ? "Création…" : "Créer la campagne"}
-      </button>
-      {questionnaires.length === 0 && (
-        <p className="text-xs text-red-500">Créez d&apos;abord un questionnaire.</p>
-      )}
-    </form>
+        <Button type="submit" loading={saving} disabled={questionnaires.length === 0} className="self-start">
+          {saving ? "Création…" : "Créer la campagne"}
+        </Button>
+        {questionnaires.length === 0 && (
+          <p className="text-xs text-red-500">Créez d&apos;abord un questionnaire.</p>
+        )}
+      </form>
+    </Card>
   );
 }

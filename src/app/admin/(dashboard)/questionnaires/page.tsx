@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { LinkButton } from "@/components/ui/Button";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const CATEGORY_LABELS: Record<string, string> = {
   POSITIONNEMENT: "Positionnement",
@@ -18,56 +22,47 @@ export default async function QuestionnairesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Questionnaires</h1>
-          <p className="text-sm text-neutral-500">Vos banques de questions, réutilisables pour plusieurs campagnes.</p>
+          <p className="text-sm text-cloudy">Vos banques de questions, réutilisables pour plusieurs campagnes.</p>
         </div>
-        <Link href="/admin/questionnaires/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">
-          + Nouveau questionnaire
-        </Link>
+        <LinkButton href="/admin/questionnaires/new">+ Nouveau questionnaire</LinkButton>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[620px] text-left text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-3">Titre</th>
-              <th className="px-4 py-3">Catégorie</th>
-              <th className="px-4 py-3">Questions</th>
-              <th className="px-4 py-3">Campagnes</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <Thead>
+            <Th>Titre</Th>
+            <Th>Catégorie</Th>
+            <Th>Questions</Th>
+            <Th>Campagnes</Th>
+            <Th />
+          </Thead>
           <tbody>
             {questionnaires.map((q) => (
-              <tr key={q.id} className="border-t border-neutral-100">
-                <td className="px-4 py-3 font-medium">{q.title}</td>
-                <td className="px-4 py-3">{CATEGORY_LABELS[q.category] ?? q.category}</td>
-                <td className="px-4 py-3">{q._count.questions}</td>
-                <td className="px-4 py-3">{q._count.campaigns}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-3">
-                    <Link
-                      href={`/admin/campaigns/new?questionnaireId=${q.id}`}
-                      className="text-neutral-500 hover:text-ink"
-                    >
+              <Tr key={q.id}>
+                <Td className="font-semibold">{q.title}</Td>
+                <Td>{CATEGORY_LABELS[q.category] ?? q.category}</Td>
+                <Td>{q._count.questions}</Td>
+                <Td>{q._count.campaigns}</Td>
+                <Td>
+                  <div className="flex items-center justify-end gap-4">
+                    <Link href={`/admin/campaigns/new?questionnaireId=${q.id}`} className="text-sm text-cloudy hover:text-ink">
                       + Campagne
                     </Link>
-                    <Link href={`/admin/questionnaires/${q.id}`} className="text-brand hover:underline">
+                    <Link href={`/admin/questionnaires/${q.id}`} className="text-sm font-semibold text-brand hover:underline">
                       Ouvrir
                     </Link>
                   </div>
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
             {questionnaires.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-400">
-                  Aucun questionnaire pour l&apos;instant.
-                </td>
-              </tr>
+              <EmptyRow colSpan={5}>
+                <EmptyState icon={BookOpen} title="Aucun questionnaire pour l'instant" />
+              </EmptyRow>
             )}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }

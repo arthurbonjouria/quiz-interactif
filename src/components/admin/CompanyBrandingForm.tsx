@@ -1,9 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
-import { Palette, X } from "lucide-react";
+import { X } from "lucide-react";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { FileDropzone } from "@/components/ui/FileDropzone";
+import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export function CompanyBrandingForm({
   companyId,
@@ -15,7 +20,6 @@ export function CompanyBrandingForm({
   initialBrandColor: string | null;
 }) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl);
   const [color, setColor] = useState(initialBrandColor ?? "#E83967");
   const [progress, setProgress] = useState<number | null>(null);
@@ -32,12 +36,9 @@ export function CompanyBrandingForm({
     router.refresh();
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleFile(file: File) {
     setError(null);
     setProgress(0);
-
     try {
       const blob = await upload(file.name, file, {
         access: "public",
@@ -46,12 +47,10 @@ export function CompanyBrandingForm({
       });
       await patchCompany({ logoUrl: blob.url });
       setLogoUrl(blob.url);
-      setProgress(null);
     } catch (err) {
       setError((err as Error).message || "Échec de l'upload.");
-      setProgress(null);
     } finally {
-      if (inputRef.current) inputRef.current.value = "";
+      setProgress(null);
     }
   }
 
@@ -78,60 +77,61 @@ export function CompanyBrandingForm({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5">
-      <div>
-        <h2 className="text-sm font-semibold">Marque blanche</h2>
-        <p className="text-xs text-neutral-500">
-          Le logo et la couleur de cette entreprise apparaissent aux côtés de BONJOUR IA sur la page d&apos;inscription
-          et le certificat de ses participants.
-        </p>
-      </div>
+    <Card>
+      <CardHeader
+        title="Marque blanche"
+        description="Le logo et la couleur de cette entreprise apparaissent aux côtés de BONJOUR IA sur la page d'inscription et le certificat de ses participants."
+      />
 
-      <div className="flex flex-wrap items-center gap-4">
-        {logoUrl ? (
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl} alt="Logo entreprise" className="h-10 max-w-[140px] rounded border border-neutral-200 object-contain p-1" />
-            <button onClick={handleRemoveLogo} className="text-neutral-400 hover:text-red-600">
-              <X size={14} strokeWidth={2} />
-            </button>
-          </div>
-        ) : (
-          <span className="text-xs text-neutral-400">Aucun logo</span>
-        )}
-        <div>
-          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} className="text-xs" />
+      <div className="flex flex-col gap-6 sm:flex-row">
+        <div className="flex-1">
+          <Field label="Logo" className="mb-3">
+            {logoUrl ? (
+              <div className="flex items-center gap-3 rounded-xl border border-ink/10 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoUrl} alt="Logo entreprise" className="h-10 max-w-[140px] object-contain" />
+                <button onClick={handleRemoveLogo} className="ml-auto text-cloudy hover:text-red-600" aria-label="Retirer le logo">
+                  <X size={16} strokeWidth={2} />
+                </button>
+              </div>
+            ) : (
+              <FileDropzone
+                onFile={handleFile}
+                accept="image/png,image/jpeg,image/webp"
+                label="Glissez un logo ici, ou cliquez pour parcourir"
+                hint="PNG, JPEG ou WebP"
+                disabled={progress !== null}
+              />
+            )}
+          </Field>
           {progress !== null && (
-            <div className="mt-1 h-1.5 w-32 overflow-hidden rounded-full bg-neutral-200">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-offwhite">
               <div className="h-full bg-brand transition-[width]" style={{ width: `${progress}%` }} />
             </div>
           )}
         </div>
+
+        <div className="flex-1">
+          <Field label="Couleur de marque" className="mb-3">
+            <div className="flex items-center gap-3">
+              <label className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-ink/10">
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="absolute -left-1 -top-1 h-12 w-12 cursor-pointer"
+                />
+              </label>
+              <Input value={color} onChange={(e) => setColor(e.target.value)} className="w-32 uppercase" />
+              <Button size="sm" variant="secondary" onClick={handleSaveColor} loading={savingColor}>
+                Enregistrer
+              </Button>
+            </div>
+          </Field>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Palette size={16} strokeWidth={2} className="text-neutral-400" />
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          className="h-8 w-12 cursor-pointer rounded border border-neutral-200"
-        />
-        <input
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          className="w-24 rounded-lg border border-neutral-300 px-2 py-1 text-xs uppercase focus:border-brand focus:outline-none"
-        />
-        <button
-          onClick={handleSaveColor}
-          disabled={savingColor}
-          className="rounded-lg bg-ink px-3 py-1.5 text-xs font-medium text-white hover:bg-brand disabled:opacity-50"
-        >
-          {savingColor ? "…" : "Enregistrer"}
-        </button>
-      </div>
-
-      {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
+      {error && <p className="mt-3 text-sm font-medium text-red-600">{error}</p>}
+    </Card>
   );
 }

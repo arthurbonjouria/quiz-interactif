@@ -19,7 +19,7 @@ export default async function EditCampaignPage({ params }: { params: { id: strin
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{campaign.label}</h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-cloudy">
           {campaign.questionnaire.title} · {campaign.company.name}
         </p>
       </div>

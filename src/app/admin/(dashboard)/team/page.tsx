@@ -1,10 +1,14 @@
 import { notFound } from "next/navigation";
+import { UserCog } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { isOwner } from "@/lib/require-admin";
 import { NewFormateurForm } from "@/components/admin/NewFormateurForm";
 import { RemoveFormateurButton } from "@/components/admin/RemoveFormateurButton";
 import { AccessRequestActions } from "@/components/admin/AccessRequestActions";
+import { Badge } from "@/components/ui/Badge";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default async function TeamPage() {
   const session = await auth();
@@ -22,7 +26,7 @@ export default async function TeamPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">Équipe</h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-cloudy">
           Chaque formateur ne voit que les campagnes et dossiers qu&apos;il crée lui-même. Vous voyez tout.
         </p>
       </div>
@@ -31,74 +35,71 @@ export default async function TeamPage() {
 
       {accessRequests.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-cloudy">
             Demandes d&apos;accès en attente ({accessRequests.length})
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-            <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-                <tr>
-                  <th className="px-4 py-3">Nom</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Message</th>
-                  <th className="px-4 py-3">Reçue le</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
+          <TableCard>
+            <Table>
+              <Thead>
+                <Th>Nom</Th>
+                <Th>Email</Th>
+                <Th>Message</Th>
+                <Th>Reçue le</Th>
+                <Th />
+              </Thead>
               <tbody>
                 {accessRequests.map((r) => (
-                  <tr key={r.id} className="border-t border-neutral-100">
-                    <td className="px-4 py-3 font-medium">{r.name}</td>
-                    <td className="px-4 py-3 text-neutral-500">{r.email}</td>
-                    <td className="max-w-xs px-4 py-3 text-xs text-neutral-400">{r.message ?? "—"}</td>
-                    <td className="px-4 py-3 text-neutral-500">{r.createdAt.toLocaleDateString("fr-FR")}</td>
-                    <td className="px-4 py-3">
+                  <Tr key={r.id}>
+                    <Td className="font-semibold">{r.name}</Td>
+                    <Td className="text-cloudy">{r.email}</Td>
+                    <Td className="max-w-xs text-xs text-cloudy">{r.message ?? "—"}</Td>
+                    <Td className="text-cloudy">{r.createdAt.toLocaleDateString("fr-FR")}</Td>
+                    <Td>
                       <AccessRequestActions id={r.id} />
-                    </td>
-                  </tr>
+                    </Td>
+                  </Tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+            </Table>
+          </TableCard>
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[560px] text-left text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-3">Nom</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Rôle</th>
-              <th className="px-4 py-3">Campagnes</th>
-              <th className="px-4 py-3">Dossiers</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <Thead>
+            <Th>Nom</Th>
+            <Th>Email</Th>
+            <Th>Rôle</Th>
+            <Th>Campagnes</Th>
+            <Th>Dossiers</Th>
+            <Th />
+          </Thead>
           <tbody>
             {team.map((u) => (
-              <tr key={u.id} className="border-t border-neutral-100">
-                <td className="px-4 py-3 font-medium">{u.name}</td>
-                <td className="px-4 py-3 text-neutral-500">{u.email}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      u.role === "OWNER" ? "bg-soft text-brand" : "bg-neutral-100 text-neutral-600"
-                    }`}
-                  >
+              <Tr key={u.id}>
+                <Td className="font-semibold">{u.name}</Td>
+                <Td className="text-cloudy">{u.email}</Td>
+                <Td>
+                  <Badge variant={u.role === "OWNER" ? "brand" : "neutral"}>
                     {u.role === "OWNER" ? "Propriétaire" : "Formateur"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">{u._count.campaigns}</td>
-                <td className="px-4 py-3">{u._count.folders}</td>
-                <td className="px-4 py-3 text-right">
+                  </Badge>
+                </Td>
+                <Td>{u._count.campaigns}</Td>
+                <Td>{u._count.folders}</Td>
+                <Td className="text-right">
                   {u.id !== session?.user?.id && <RemoveFormateurButton id={u.id} name={u.name} />}
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
+            {team.length === 0 && (
+              <EmptyRow colSpan={6}>
+                <EmptyState icon={UserCog} title="Aucun membre d'équipe" />
+              </EmptyRow>
+            )}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }

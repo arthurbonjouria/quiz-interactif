@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
+import { History } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { isOwner } from "@/lib/require-admin";
+import { Badge } from "@/components/ui/Badge";
+import { LinkButton } from "@/components/ui/Button";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const ACTION_LABELS: Record<string, string> = {
   "campaign.create": "Campagne créée",
@@ -30,60 +35,62 @@ export default async function AuditPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Historique</h1>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-cloudy">
             Journal des actions effectuées sur la plateforme, pour votre suivi qualité (Qualiopi).
           </p>
         </div>
-        <a
-          href="/api/admin/audit/export"
-          className="shrink-0 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand"
-        >
+        <LinkButton href="/api/admin/audit/export" className="shrink-0">
           Export PDF
-        </a>
+        </LinkButton>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Qui</th>
-              <th className="px-4 py-3">Action</th>
-              <th className="px-4 py-3">Concerne</th>
-              <th className="px-4 py-3">Détails</th>
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <Thead>
+            <Th>Date</Th>
+            <Th>Qui</Th>
+            <Th>Action</Th>
+            <Th>Concerne</Th>
+            <Th>Détails</Th>
+          </Thead>
           <tbody>
             {entries.map((e) => {
               const metadata = e.metadata ? (JSON.parse(e.metadata) as Record<string, unknown>) : null;
               return (
-                <tr key={e.id} className="border-t border-neutral-100 align-top">
-                  <td className="whitespace-nowrap px-4 py-3 text-neutral-500">
+                <Tr key={e.id} className="align-top">
+                  <Td className="whitespace-nowrap text-cloudy">
                     {e.createdAt.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
-                  </td>
-                  <td className="px-4 py-3">{e.actorName}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-soft px-2 py-0.5 text-xs font-medium text-brand">
-                      {ACTION_LABELS[e.action] ?? e.action}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{e.targetLabel}</td>
-                  <td className="max-w-xs px-4 py-3 text-xs text-neutral-400">
-                    {metadata ? JSON.stringify(metadata) : ""}
-                  </td>
-                </tr>
+                  </Td>
+                  <Td>{e.actorName}</Td>
+                  <Td>
+                    <Badge variant="brand">{ACTION_LABELS[e.action] ?? e.action}</Badge>
+                  </Td>
+                  <Td>{e.targetLabel}</Td>
+                  <Td className="max-w-xs">
+                    {metadata && (
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(metadata).map(([key, val]) => (
+                          <span
+                            key={key}
+                            className="rounded-full bg-offwhite px-2 py-0.5 text-[11px] font-medium text-cloudy"
+                          >
+                            {key} : {String(val)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </Td>
+                </Tr>
               );
             })}
             {entries.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-400">
-                  Aucune action enregistrée pour l&apos;instant.
-                </td>
-              </tr>
+              <EmptyRow colSpan={5}>
+                <EmptyState icon={History} title="Aucune action enregistrée pour l'instant" />
+              </EmptyRow>
             )}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }

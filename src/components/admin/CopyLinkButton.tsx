@@ -13,7 +13,7 @@ export function CopyLinkButton({ code }: { code: string }) {
   }
 
   return (
-    <button onClick={handleCopy} className="rounded-lg border border-neutral-300 px-3 py-1 text-xs font-medium hover:border-brand hover:text-brand">
+    <button onClick={handleCopy} className="rounded-lg border border-ink/15 px-3 py-1 text-xs font-semibold text-ink transition hover:border-brand hover:text-brand">
       {copied ? "Copié !" : `/s/${code}`}
     </button>
   );

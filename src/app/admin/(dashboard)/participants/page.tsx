@@ -1,6 +1,13 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Users } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const CATEGORIES = [
   { value: "POSITIONNEMENT", label: "Positionnement" },
@@ -93,116 +100,81 @@ export default async function ParticipantsPage({ searchParams }: { searchParams:
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">Participants</h1>
-        <p className="text-sm text-neutral-500">
-          Vue consolidée par collaborateur, tous questionnaires confondus.
-        </p>
+        <p className="text-sm text-cloudy">Vue consolidée par collaborateur, tous questionnaires confondus.</p>
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Recherche</label>
-          <input
-            type="text"
-            name="q"
-            defaultValue={q}
-            placeholder="Nom ou email"
-            className="w-48 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Entreprise</label>
-          <select
-            name="companyId"
-            defaultValue={companyId ?? ""}
-            className="w-44 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          >
-            <option value="">Toutes</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Catégorie</label>
-          <select
-            name="category"
-            defaultValue={category ?? ""}
-            className="w-44 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          >
-            <option value="">Toutes</option>
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Du</label>
-          <input
-            type="date"
-            name="from"
-            defaultValue={from}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Au</label>
-          <input
-            type="date"
-            name="to"
-            defaultValue={to}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-        </div>
-        <button type="submit" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">
-          Filtrer
-        </button>
-        <Link href="/admin/participants" className="text-sm text-neutral-500 hover:text-ink">
-          Réinitialiser
-        </Link>
-      </form>
+      <Card>
+        <form method="get" className="flex flex-wrap items-end gap-3">
+          <Field label="Recherche">
+            <Input type="text" name="q" defaultValue={q} placeholder="Nom ou email" className="w-48" />
+          </Field>
+          <Field label="Entreprise">
+            <Select name="companyId" defaultValue={companyId ?? ""} className="w-44">
+              <option value="">Toutes</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Catégorie">
+            <Select name="category" defaultValue={category ?? ""} className="w-44">
+              <option value="">Toutes</option>
+              {CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Du">
+            <Input type="date" name="from" defaultValue={from} />
+          </Field>
+          <Field label="Au">
+            <Input type="date" name="to" defaultValue={to} />
+          </Field>
+          <Button type="submit">Filtrer</Button>
+          <Link href="/admin/participants" className="pb-2.5 text-sm font-medium text-cloudy hover:text-ink">
+            Réinitialiser
+          </Link>
+        </form>
+      </Card>
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-3">Participant</th>
-              <th className="px-4 py-3">Entreprise</th>
-              <th className="px-4 py-3">Positionnement</th>
-              <th className="px-4 py-3">IA Act</th>
-              <th className="px-4 py-3">Acquis</th>
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <Thead>
+            <Th>Participant</Th>
+            <Th>Entreprise</Th>
+            <Th>Positionnement</Th>
+            <Th>IA Act</Th>
+            <Th>Acquis</Th>
+          </Thead>
           <tbody>
             {participants.map((p) => (
-              <tr key={p.id} className="border-t border-neutral-100">
-                <td className="px-4 py-3">
-                  <div className="font-medium">
+              <Tr key={p.id}>
+                <Td>
+                  <div className="font-semibold">
                     {p.firstName} {p.lastName}
                   </div>
-                  <div className="text-xs text-neutral-400">{p.email}</div>
-                </td>
-                <td className="px-4 py-3">{p.company.name}</td>
+                  <div className="text-xs text-cloudy">{p.email}</div>
+                </Td>
+                <Td>{p.company.name}</Td>
                 {CATEGORIES.map((c) => (
-                  <td key={c.value} className="px-4 py-3">
+                  <Td key={c.value}>
                     <CategoryCell status={categoryStatus(p.attempts, c.value)} />
-                  </td>
+                  </Td>
                 ))}
-              </tr>
+              </Tr>
             ))}
             {participants.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-neutral-400">
-                  Aucun participant ne correspond à ces filtres.
-                </td>
-              </tr>
+              <EmptyRow colSpan={5}>
+                <EmptyState icon={Users} title="Aucun participant ne correspond à ces filtres" />
+              </EmptyRow>
             )}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }
@@ -213,19 +185,16 @@ function CategoryCell({
   status: { state: "none" | "in_progress" | "done"; score?: number; attemptId?: string };
 }) {
   if (status.state === "none") {
-    return <span className="text-xs text-neutral-300">—</span>;
+    return <span className="text-xs text-cloudy/60">—</span>;
   }
   if (status.state === "in_progress") {
-    return (
-      <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">En cours</span>
-    );
+    return <Badge variant="warning">En cours</Badge>;
   }
   return (
-    <Link
-      href={`/api/attempts/${status.attemptId}/certificate`}
-      className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 hover:underline"
-    >
-      <Check size={12} strokeWidth={3} /> {status.score} pts
+    <Link href={`/api/attempts/${status.attemptId}/certificate`} className="inline-flex">
+      <Badge variant="brand" className="hover:underline">
+        <Check size={12} strokeWidth={3} /> {status.score} pts
+      </Badge>
     </Link>
   );
 }

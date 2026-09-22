@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type OtherCompany = { id: string; name: string; domain: string };
 
@@ -20,6 +25,7 @@ export function CompanySettingsForm({
   const [name, setName] = useState(initialName);
   const [domain, setDomain] = useState(initialDomain);
   const [mergeIntoId, setMergeIntoId] = useState("");
+  const [confirmingMerge, setConfirmingMerge] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,8 +47,6 @@ export function CompanySettingsForm({
   }
 
   async function handleMerge() {
-    if (!mergeIntoId) return;
-    if (!confirm("Fusionner définitivement cette entreprise dans l'entreprise sélectionnée ?")) return;
     setSaving(true);
     setError(null);
     const res = await fetch(`/api/admin/companies/${companyId}`, {
@@ -58,61 +62,70 @@ export function CompanySettingsForm({
     router.push(`/admin/companies/${mergeIntoId}`);
   }
 
+  const mergeTarget = otherCompanies.find((c) => c.id === mergeIntoId);
+
   return (
-    <div className="flex flex-col gap-6 rounded-xl border border-neutral-200 bg-white p-5">
-      <form onSubmit={handleRename} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Nom</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-        </div>
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-neutral-500">Domaine</label>
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-        </div>
-        <button type="submit" disabled={saving} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand disabled:opacity-50">
-          Enregistrer
-        </button>
-      </form>
+    <div className="flex flex-col gap-6">
+      <Card>
+        <form onSubmit={handleRename} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <Field label="Nom" className="flex-1">
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          <Field label="Domaine" className="flex-1">
+            <Input value={domain} onChange={(e) => setDomain(e.target.value)} />
+          </Field>
+          <Button type="submit" loading={saving}>
+            Enregistrer
+          </Button>
+        </form>
+      </Card>
 
       {otherCompanies.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-neutral-100 pt-4 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Fusionner dans une autre entreprise (déplace participants et campagnes)
-            </label>
-            <select
-              value={mergeIntoId}
-              onChange={(e) => setMergeIntoId(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
+        <div className="rounded-2xl border border-red-200 bg-red-50/30 p-6 shadow-[0_2px_16px_-4px_rgba(45,45,45,0.08)]">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-600">Zone sensible</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <Field label="Fusionner dans une autre entreprise" hint="Déplace participants et campagnes" className="flex-1">
+              <Select value={mergeIntoId} onChange={(e) => setMergeIntoId(e.target.value)}>
+                <option value="">Sélectionner…</option>
+                {otherCompanies.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.domain})
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setConfirmingMerge(true)}
+              disabled={saving || !mergeIntoId}
             >
-              <option value="">Sélectionner…</option>
-              {otherCompanies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.domain})
-                </option>
-              ))}
-            </select>
+              Fusionner
+            </Button>
           </div>
-          <button
-            type="button"
-            onClick={handleMerge}
-            disabled={saving || !mergeIntoId}
-            className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-          >
-            Fusionner
-          </button>
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
+      {confirmingMerge && mergeTarget && (
+        <ConfirmDialog
+          title="Fusionner cette entreprise ?"
+          description={
+            <>
+              Tous les participants et campagnes seront déplacés définitivement vers{" "}
+              <strong>{mergeTarget.name}</strong>. Cette action est irréversible.
+            </>
+          }
+          confirmLabel="Fusionner définitivement"
+          danger
+          onClose={() => setConfirmingMerge(false)}
+          onConfirm={async () => {
+            await handleMerge();
+            setConfirmingMerge(false);
+          }}
+        />
+      )}
     </div>
   );
 }

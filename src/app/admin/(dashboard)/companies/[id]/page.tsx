@@ -7,6 +7,14 @@ import { ResendCertificateButton } from "@/components/admin/ResendCertificateBut
 import { BarChart } from "@/components/admin/BarChart";
 import { auth } from "@/lib/auth";
 import { isOwner } from "@/lib/require-admin";
+import { LinkButton } from "@/components/ui/Button";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { StatCard } from "@/components/ui/StatCard";
+import { Disclosure } from "@/components/ui/Disclosure";
+import { Tabs } from "@/components/ui/Tabs";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Users2 } from "lucide-react";
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
   const session = await auth();
@@ -60,192 +68,209 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
   });
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">{company.name}</h1>
-          <p className="text-sm text-neutral-500">{company.domain}</p>
+          <p className="text-sm text-cloudy">{company.domain}</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <a href={`/api/admin/companies/${company.id}/export`} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-brand">
-            Export PDF (toutes campagnes)
-          </a>
-          <a href={`/api/admin/companies/${company.id}/export-csv`} className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-ink">
+          <LinkButton href={`/api/admin/companies/${company.id}/export`}>Export PDF (toutes campagnes)</LinkButton>
+          <LinkButton href={`/api/admin/companies/${company.id}/export-csv`} variant="secondary">
             Export CSV
-          </a>
+          </LinkButton>
         </div>
       </div>
 
-      <CompanySettingsForm companyId={company.id} initialName={company.name} initialDomain={company.domain} otherCompanies={otherCompanies} />
+      <Tabs
+        tabs={[
+          {
+            key: "settings",
+            label: "Paramètres",
+            content: (
+              <CompanySettingsForm
+                companyId={company.id}
+                initialName={company.name}
+                initialDomain={company.domain}
+                otherCompanies={otherCompanies}
+              />
+            ),
+          },
+          {
+            key: "branding",
+            label: "Branding",
+            content: (
+              <CompanyBrandingForm
+                companyId={company.id}
+                initialLogoUrl={company.logoUrl}
+                initialBrandColor={company.brandColor}
+              />
+            ),
+          },
+          {
+            key: "analytics",
+            label: "Analytics",
+            content:
+              company.campaigns.length > 0 ? (
+                <Card>
+                  <CardHeader
+                    title="Vue d'ensemble"
+                    description="Toutes campagnes confondues, pour vos comptes-rendus RH."
+                  />
+                  <div className="grid grid-cols-3 gap-4">
+                    <StatCard label="Participants" value={uniqueParticipants} />
+                    <StatCard label="Complétion globale" value={`${globalCompletionRate}%`} />
+                    <StatCard label="Réussite globale" value={`${globalSuccessRateForCompany}%`} />
+                  </div>
+                  <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-cloudy">
+                        Taux de complétion par campagne
+                      </p>
+                      <BarChart items={completionByCampaign} color="#E83967" />
+                    </div>
+                    <div>
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-cloudy">
+                        Taux de réussite par campagne
+                      </p>
+                      <BarChart items={successByCampaign} color="#B1ADA1" />
+                    </div>
+                  </div>
+                </Card>
+              ) : (
+                <EmptyState icon={Users2} title="Pas encore de données" description="Lancez une campagne pour voir apparaître les analytics ici." />
+              ),
+          },
+          {
+            key: "campaigns",
+            label: `Campagnes (${company.campaigns.length})`,
+            content: (
+              <div className="flex flex-col gap-6">
+                {company.campaigns.length === 0 && (
+                  <EmptyState icon={Users2} title="Aucune campagne pour cette entreprise pour l'instant" />
+                )}
+                {company.campaigns.map((campaign) => {
+                  const finished = campaign.attempts.filter((a) => a.finishedAt);
+                  const completionRate =
+                    campaign.attempts.length > 0 ? Math.round((finished.length / campaign.attempts.length) * 100) : 0;
+                  const avgScore =
+                    finished.length > 0 ? Math.round(finished.reduce((s, a) => s + a.totalScore, 0) / finished.length) : 0;
 
-      <CompanyBrandingForm companyId={company.id} initialLogoUrl={company.logoUrl} initialBrandColor={company.brandColor} />
+                  const allAnswers = campaign.attempts.flatMap((a) => a.answers);
+                  const globalSuccessRate =
+                    allAnswers.length > 0
+                      ? Math.round((allAnswers.filter((a) => a.correct).length / allAnswers.length) * 100)
+                      : null;
 
-      {company.campaigns.length > 0 && (
-        <div className="flex flex-col gap-6 rounded-xl border border-neutral-200 bg-white p-5">
-          <div>
-            <h2 className="text-lg font-semibold">Vue d&apos;ensemble</h2>
-            <p className="text-xs text-neutral-500">Toutes campagnes confondues, pour vos comptes-rendus RH.</p>
-          </div>
+                  const questionStats = campaign.questionnaire.questions.map((q) => {
+                    const answers = campaign.attempts.flatMap((a) => a.answers).filter((ans) => ans.questionId === q.id);
+                    const correctCount = answers.filter((a) => a.correct).length;
+                    const rate = answers.length > 0 ? Math.round((correctCount / answers.length) * 100) : null;
+                    return { text: q.text, rate, total: answers.length };
+                  });
 
-          <div className="grid grid-cols-3 gap-4">
-            <Stat label="Participants" value={uniqueParticipants} />
-            <Stat label="Complétion globale" value={`${globalCompletionRate}%`} />
-            <Stat label="Réussite globale" value={`${globalSuccessRateForCompany}%`} />
-          </div>
+                  return (
+                    <Card key={campaign.id}>
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <h2 className="text-lg font-semibold text-ink">{campaign.label}</h2>
+                          <p className="text-xs text-cloudy">
+                            {campaign.questionnaire.title} · Lien : /s/{campaign.code}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <LinkButton
+                            href={`/api/admin/companies/${company.id}/export?campaignId=${campaign.id}`}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            Export PDF
+                          </LinkButton>
+                          <LinkButton
+                            href={`/api/admin/companies/${company.id}/export-csv?campaignId=${campaign.id}`}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            Export CSV
+                          </LinkButton>
+                        </div>
+                      </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Taux de complétion par campagne
-              </p>
-              <BarChart items={completionByCampaign} color="#E83967" />
-            </div>
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Taux de réussite par campagne
-              </p>
-              <BarChart items={successByCampaign} color="#B1ADA1" />
-            </div>
-          </div>
-        </div>
-      )}
+                      <div className="my-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <StatCard label="Complétion" value={`${completionRate}%`} />
+                        <StatCard label="Score moyen" value={avgScore} />
+                        <StatCard label="Réussite globale" value={globalSuccessRate === null ? "—" : `${globalSuccessRate}%`} />
+                        <StatCard label="Participants" value={campaign.attempts.length} />
+                      </div>
 
-      {company.campaigns.length === 0 && (
-        <p className="text-sm text-neutral-400">Aucune campagne pour cette entreprise pour l&apos;instant.</p>
-      )}
+                      <Disclosure label="Taux de réussite par question">
+                        <ul className="flex flex-col gap-1">
+                          {questionStats.map((qs, i) => (
+                            <li key={i} className="flex justify-between border-b border-ink/5 py-1.5 text-xs">
+                              <span className="pr-4 text-ink/70">{qs.text}</span>
+                              <span className="whitespace-nowrap font-semibold text-ink">
+                                {qs.rate === null ? "—" : `${qs.rate}% (${qs.total})`}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </Disclosure>
 
-      {company.campaigns.map((campaign) => {
-        const finished = campaign.attempts.filter((a) => a.finishedAt);
-        const completionRate = campaign.attempts.length > 0 ? Math.round((finished.length / campaign.attempts.length) * 100) : 0;
-        const avgScore = finished.length > 0 ? Math.round(finished.reduce((s, a) => s + a.totalScore, 0) / finished.length) : 0;
+                      <TableCard className="mt-4 shadow-none">
+                        <Table>
+                          <Thead>
+                            <Th>Participant</Th>
+                            <Th>Statut</Th>
+                            <Th>Score</Th>
+                            <Th>Réussite</Th>
+                            <Th>Date</Th>
+                            <Th>Certificat</Th>
+                          </Thead>
+                          <tbody>
+                            {campaign.attempts.map((a) => {
+                              const answeredCount = a.answers.length;
+                              const correctCount = a.answers.filter((ans) => ans.correct).length;
+                              const successRate = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : null;
 
-        const allAnswers = campaign.attempts.flatMap((a) => a.answers);
-        const globalSuccessRate =
-          allAnswers.length > 0
-            ? Math.round((allAnswers.filter((a) => a.correct).length / allAnswers.length) * 100)
-            : null;
-
-        const questionStats = campaign.questionnaire.questions.map((q) => {
-          const answers = campaign.attempts.flatMap((a) => a.answers).filter((ans) => ans.questionId === q.id);
-          const correctCount = answers.filter((a) => a.correct).length;
-          const rate = answers.length > 0 ? Math.round((correctCount / answers.length) * 100) : null;
-          return { text: q.text, rate, total: answers.length };
-        });
-
-        return (
-          <div key={campaign.id} className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold">{campaign.label}</h2>
-                <p className="text-xs text-neutral-500">
-                  {campaign.questionnaire.title} · Lien : /s/{campaign.code}
-                </p>
+                              return (
+                                <Tr key={a.id}>
+                                  <Td>
+                                    {a.participant.firstName} {a.participant.lastName}
+                                    <div className="text-xs text-cloudy">{a.participant.email}</div>
+                                  </Td>
+                                  <Td>{a.finishedAt ? "Terminé" : "En cours"}</Td>
+                                  <Td>{a.totalScore}</Td>
+                                  <Td>{successRate === null ? "—" : `${successRate}% (${correctCount}/${answeredCount})`}</Td>
+                                  <Td className="text-cloudy">{a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-"}</Td>
+                                  <Td>
+                                    {a.certificate ? (
+                                      <div className="flex items-center gap-3">
+                                        <Link href={`/api/attempts/${a.id}/certificate`} className="font-semibold text-brand hover:underline">
+                                          Télécharger
+                                        </Link>
+                                        <ResendCertificateButton attemptId={a.id} />
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-cloudy">-</span>
+                                    )}
+                                  </Td>
+                                </Tr>
+                              );
+                            })}
+                            {campaign.attempts.length === 0 && (
+                              <EmptyRow colSpan={6}>Aucun participant pour l&apos;instant.</EmptyRow>
+                            )}
+                          </tbody>
+                        </Table>
+                      </TableCard>
+                    </Card>
+                  );
+                })}
               </div>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <Stat label="Complétion" value={`${completionRate}%`} />
-                <Stat label="Score moyen" value={avgScore} />
-                <Stat label="Réussite globale" value={globalSuccessRate === null ? "—" : `${globalSuccessRate}%`} />
-                <Stat label="Participants" value={campaign.attempts.length} />
-              </div>
-              <div className="flex gap-2">
-                <a
-                  href={`/api/admin/companies/${company.id}/export?campaignId=${campaign.id}`}
-                  className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:border-ink"
-                >
-                  Export PDF campagne
-                </a>
-                <a
-                  href={`/api/admin/companies/${company.id}/export-csv?campaignId=${campaign.id}`}
-                  className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:border-ink"
-                >
-                  Export CSV campagne
-                </a>
-              </div>
-            </div>
-
-            <details className="text-sm">
-              <summary className="cursor-pointer font-medium text-neutral-600">
-                Taux de réussite par question
-              </summary>
-              <ul className="mt-2 flex flex-col gap-1">
-                {questionStats.map((qs, i) => (
-                  <li key={i} className="flex justify-between border-b border-neutral-100 py-1 text-xs">
-                    <span className="pr-4 text-neutral-600">{qs.text}</span>
-                    <span className="whitespace-nowrap font-medium">{qs.rate === null ? "—" : `${qs.rate}% (${qs.total})`}</span>
-                  </li>
-                ))}
-              </ul>
-            </details>
-
-            <div className="overflow-x-auto rounded-lg border border-neutral-100">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-                  <tr>
-                    <th className="px-3 py-2">Participant</th>
-                    <th className="px-3 py-2">Statut</th>
-                    <th className="px-3 py-2">Score</th>
-                    <th className="px-3 py-2">Réussite</th>
-                    <th className="px-3 py-2">Date</th>
-                    <th className="px-3 py-2">Certificat</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {campaign.attempts.map((a) => {
-                    const answeredCount = a.answers.length;
-                    const correctCount = a.answers.filter((ans) => ans.correct).length;
-                    const successRate = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : null;
-
-                    return (
-                      <tr key={a.id} className="border-t border-neutral-100">
-                        <td className="px-3 py-2">
-                          {a.participant.firstName} {a.participant.lastName}
-                          <div className="text-xs text-neutral-400">{a.participant.email}</div>
-                        </td>
-                        <td className="px-3 py-2">{a.finishedAt ? "Terminé" : "En cours"}</td>
-                        <td className="px-3 py-2">{a.totalScore}</td>
-                        <td className="px-3 py-2">
-                          {successRate === null ? "—" : `${successRate}% (${correctCount}/${answeredCount})`}
-                        </td>
-                        <td className="px-3 py-2 text-neutral-500">
-                          {a.finishedAt ? a.finishedAt.toLocaleDateString("fr-FR") : "-"}
-                        </td>
-                        <td className="px-3 py-2">
-                          {a.certificate ? (
-                            <div className="flex items-center gap-3">
-                              <Link href={`/api/attempts/${a.id}/certificate`} className="text-brand hover:underline">
-                                Télécharger
-                              </Link>
-                              <ResendCertificateButton attemptId={a.id} />
-                            </div>
-                          ) : (
-                            <span className="text-xs text-neutral-400">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {campaign.attempts.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-3 py-4 text-center text-neutral-400">
-                        Aucun participant pour l&apos;instant.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="text-center">
-      <p className="text-xs text-neutral-400">{label}</p>
-      <p className="font-semibold">{value}</p>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

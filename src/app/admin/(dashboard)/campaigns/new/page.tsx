@@ -12,7 +12,7 @@ export default async function NewCampaignPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">Nouvelle campagne</h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-cloudy">
           Associe un questionnaire à une entreprise et génère un lien unique à partager.
         </p>
       </div>

@@ -37,11 +37,11 @@ export default async function AdminDashboardPage() {
     <div className="flex flex-col gap-10">
       <div>
         <h1 className="text-2xl font-bold">Bonjour</h1>
-        <p className="text-sm text-neutral-500">Voici tout ce dont vous avez besoin pour gérer vos formations.</p>
+        <p className="text-sm text-cloudy">Voici tout ce dont vous avez besoin pour gérer vos formations.</p>
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">Que voulez-vous faire ?</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cloudy">Que voulez-vous faire ?</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <ActionCard
             href="/admin/questionnaires/new"
@@ -73,7 +73,7 @@ export default async function AdminDashboardPage() {
       <HowItWorks />
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-500">Vue d&apos;ensemble</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cloudy">Vue d&apos;ensemble</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="Questionnaires" value={questionnaires} />
           <StatCard label="Campagnes" value={campaigns} />
@@ -84,7 +84,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-cloudy/80">
         {finishedAttempts.length} tentative(s) terminée(s) · Score moyen : {avgScore} points
       </p>
     </div>
@@ -105,13 +105,13 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="group flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
+      className="group flex flex-col gap-2 rounded-2xl border border-ink/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
     >
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-soft text-brand">
         <Icon size={20} strokeWidth={2} />
       </span>
       <span className="font-semibold text-ink">{title}</span>
-      <span className="text-sm text-neutral-500">{description}</span>
+      <span className="text-sm text-cloudy">{description}</span>
       <span className="mt-1 text-sm font-semibold text-brand opacity-0 transition group-hover:opacity-100">
         Commencer →
       </span>
@@ -140,14 +140,14 @@ function HowItWorks() {
   ];
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">Comment ça marche</h2>
+    <div className="rounded-2xl border border-ink/10 bg-white p-5">
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-cloudy">Comment ça marche</h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {steps.map((step) => (
           <div key={step.title} className="flex flex-col gap-1">
             <step.icon size={20} strokeWidth={2} className="mb-1 text-brand" />
             <span className="text-sm font-semibold text-ink">{step.title}</span>
-            <span className="text-sm text-neutral-500">{step.description}</span>
+            <span className="text-sm text-cloudy">{step.description}</span>
           </div>
         ))}
       </div>

@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { X, Plus, CheckCircle2 } from "lucide-react";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 type Invitee = { firstName: string; lastName: string; email: string };
 
@@ -41,62 +45,55 @@ export function InviteToFolderForm({ folderId }: { folderId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5">
-      <h2 className="text-sm font-semibold">Inviter des étudiants à tout ce dossier</h2>
-      {invitees.map((inv, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2">
-          <input
-            required
-            placeholder="Prénom"
-            value={inv.firstName}
-            onChange={(e) => update(i, { firstName: e.target.value })}
-            className="w-32 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-          <input
-            required
-            placeholder="Nom"
-            value={inv.lastName}
-            onChange={(e) => update(i, { lastName: e.target.value })}
-            className="w-32 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-          <input
-            required
-            type="email"
-            placeholder="Email"
-            value={inv.email}
-            onChange={(e) => update(i, { email: e.target.value })}
-            className="flex-1 min-w-[200px] rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-          />
-          {invitees.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setInvitees((list) => list.filter((_, idx) => idx !== i))}
-              className="text-xs text-red-600 hover:underline"
-            >
-              Retirer
-            </button>
-          )}
-        </div>
-      ))}
+    <Card>
+      <CardHeader title="Inviter des étudiants à tout ce dossier" />
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {invitees.map((inv, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-2">
+            <Input required placeholder="Prénom" value={inv.firstName} onChange={(e) => update(i, { firstName: e.target.value })} className="w-32" />
+            <Input required placeholder="Nom" value={inv.lastName} onChange={(e) => update(i, { lastName: e.target.value })} className="w-32" />
+            <Input
+              required
+              type="email"
+              placeholder="Email"
+              value={inv.email}
+              onChange={(e) => update(i, { email: e.target.value })}
+              className="min-w-[200px] flex-1"
+            />
+            {invitees.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setInvitees((list) => list.filter((_, idx) => idx !== i))}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-cloudy transition hover:bg-red-50 hover:text-red-600"
+                aria-label="Retirer"
+              >
+                <X size={14} strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        ))}
 
-      <button
-        type="button"
-        onClick={() => setInvitees((list) => [...list, { ...EMPTY }])}
-        className="self-start rounded-lg border border-dashed border-neutral-400 px-4 py-1.5 text-xs font-medium text-neutral-600 hover:border-brand hover:text-brand"
-      >
-        + Ajouter un étudiant
-      </button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setInvitees((list) => [...list, { ...EMPTY }])}
+          className="self-start"
+        >
+          <Plus size={13} strokeWidth={2.5} /> Ajouter un étudiant
+        </Button>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {success && <p className="text-sm text-green-600">{success}</p>}
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+        {success && (
+          <p className="flex items-center gap-1.5 text-sm font-medium text-brand">
+            <CheckCircle2 size={14} strokeWidth={2} /> {success}
+          </p>
+        )}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="self-start rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand disabled:opacity-50"
-      >
-        {saving ? "Envoi…" : "Envoyer les invitations"}
-      </button>
-    </form>
+        <Button type="submit" loading={saving} className="self-start">
+          {saving ? "Envoi…" : "Envoyer les invitations"}
+        </Button>
+      </form>
+    </Card>
   );
 }

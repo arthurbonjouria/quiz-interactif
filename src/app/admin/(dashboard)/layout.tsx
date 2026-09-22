@@ -10,24 +10,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-offwhite">
-      <header className="flex flex-col gap-3 border-b border-neutral-200 bg-white px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
+      <header className="flex flex-col gap-3 border-b border-ink/10 bg-white px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
           <div className="flex items-center justify-between gap-4 sm:justify-start sm:gap-8">
             <Link href="/admin" className="shrink-0">
               <Logo className="h-7" />
             </Link>
-            <div className="flex items-center gap-3 text-xs text-neutral-500 sm:hidden">
-              <span className="max-w-[140px] truncate">{session?.user?.email}</span>
+            <div className="flex items-center gap-2 text-xs text-cloudy sm:hidden">
+              <GlobalSearch />
+              <span className="max-w-[100px] truncate">{session?.user?.email}</span>
               <SignOutButton />
             </div>
           </div>
           <AdminNav isOwner={isOwner(session)} />
-          <div className="hidden items-center gap-4 text-sm text-neutral-500 sm:flex">
+          <div className="hidden items-center gap-4 text-sm text-cloudy sm:flex">
+            <GlobalSearch />
             <span>{session?.user?.email}</span>
             <SignOutButton />
           </div>
         </div>
-        <GlobalSearch />
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
     </div>

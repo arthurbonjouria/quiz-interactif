@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 type Campaign = {
   id: string;
@@ -45,52 +49,38 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-lg flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6">
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Nom de la campagne</label>
-        <input
-          required
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+    <Card className="max-w-lg">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <Field label="Nom de la campagne">
+          <Input required value={label} onChange={(e) => setLabel(e.target.value)} />
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Lien</label>
-        <p className="rounded-lg bg-neutral-100 px-3 py-2 font-mono text-sm">/s/{campaign.code}</p>
-      </div>
+        <Field label="Lien">
+          <p className="rounded-xl bg-offwhite px-3.5 py-2.5 font-mono text-sm text-ink">/s/{campaign.code}</p>
+        </Field>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Date de fin (optionnel)</label>
-        <input
-          type="date"
-          value={endsAt}
-          onChange={(e) => setEndsAt(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-        <p className="mt-1 text-xs text-neutral-400">
-          Après cette date, les nouvelles inscriptions ne seront plus acceptées. Laisser vide pour une campagne sans
-          date de fin.
-        </p>
-      </div>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-        Campagne active (décochez pour désactiver immédiatement les nouvelles inscriptions)
-      </label>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand disabled:opacity-50"
+        <Field
+          label="Date de fin"
+          hint="optionnel"
         >
+          <Input type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+          <p className="mt-1.5 text-xs text-cloudy">
+            Après cette date, les nouvelles inscriptions ne seront plus acceptées. Laisser vide pour une campagne sans
+            date de fin.
+          </p>
+        </Field>
+
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="h-4 w-4 accent-brand" />
+          Campagne active (décochez pour désactiver immédiatement les nouvelles inscriptions)
+        </label>
+
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
+        <Button type="submit" loading={saving} className="self-start">
           {saving ? "Enregistrement…" : "Enregistrer"}
-        </button>
-      </div>
-    </form>
+        </Button>
+      </form>
+    </Card>
   );
 }

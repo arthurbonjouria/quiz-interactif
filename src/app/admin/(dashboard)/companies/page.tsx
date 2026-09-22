@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { TableCard, Table, Thead, Th, Tr, Td, EmptyRow } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default async function CompaniesPage() {
   const companies = await prisma.company.findMany({
@@ -14,7 +17,7 @@ export default async function CompaniesPage() {
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-bold">Entreprises</h1>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-cloudy">
           Regroupées automatiquement selon le domaine email des participants.
         </p>
       </div>
@@ -38,44 +41,40 @@ function CompanyTable({
 }) {
   return (
     <div>
-      <h2 className={`mb-3 text-sm font-semibold uppercase tracking-wide ${muted ? "text-neutral-400" : "text-neutral-600"}`}>
+      <h2 className={`mb-3 text-sm font-semibold uppercase tracking-wide ${muted ? "text-cloudy/70" : "text-cloudy"}`}>
         {title}
       </h2>
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-        <table className="w-full min-w-[560px] text-left text-sm">
-          <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
-            <tr>
-              <th className="px-4 py-3">Entreprise</th>
-              <th className="px-4 py-3">Domaine</th>
-              <th className="px-4 py-3">Participants</th>
-              <th className="px-4 py-3">Campagnes</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <Thead>
+            <Th>Entreprise</Th>
+            <Th>Domaine</Th>
+            <Th>Participants</Th>
+            <Th>Campagnes</Th>
+            <Th />
+          </Thead>
           <tbody>
             {companies.map((c) => (
-              <tr key={c.id} className="border-t border-neutral-100">
-                <td className="px-4 py-3 font-medium">{c.name}</td>
-                <td className="px-4 py-3 text-neutral-500">{c.domain}</td>
-                <td className="px-4 py-3">{c._count.participants}</td>
-                <td className="px-4 py-3">{c._count.campaigns}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/companies/${c.id}`} className="text-brand hover:underline">
+              <Tr key={c.id}>
+                <Td className="font-semibold">{c.name}</Td>
+                <Td className="text-cloudy">{c.domain}</Td>
+                <Td>{c._count.participants}</Td>
+                <Td>{c._count.campaigns}</Td>
+                <Td className="text-right">
+                  <Link href={`/admin/companies/${c.id}`} className="text-sm font-semibold text-brand hover:underline">
                     Ouvrir
                   </Link>
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
             {companies.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-neutral-400">
-                  Aucune entreprise.
-                </td>
-              </tr>
+              <EmptyRow colSpan={5}>
+                <EmptyState icon={Building2} title="Aucune entreprise" />
+              </EmptyRow>
             )}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }

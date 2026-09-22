@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QuestionnaireEditor } from "@/components/admin/QuestionnaireEditor";
 import { CsvImportForm } from "@/components/admin/CsvImportForm";
+import { cn } from "@/lib/cn";
 
 export default function NewQuestionnairePage() {
   const [mode, setMode] = useState<"manual" | "csv">("csv");
@@ -14,13 +15,19 @@ export default function NewQuestionnairePage() {
       <div className="flex gap-2 text-sm">
         <button
           onClick={() => setMode("csv")}
-          className={`rounded-lg px-4 py-2 font-medium ${mode === "csv" ? "bg-ink text-white" : "border border-neutral-300"}`}
+          className={cn(
+            "rounded-xl px-4 py-2 font-semibold transition",
+            mode === "csv" ? "bg-brand text-white" : "border border-ink/15 text-ink hover:border-brand hover:text-brand"
+          )}
         >
           Import CSV
         </button>
         <button
           onClick={() => setMode("manual")}
-          className={`rounded-lg px-4 py-2 font-medium ${mode === "manual" ? "bg-ink text-white" : "border border-neutral-300"}`}
+          className={cn(
+            "rounded-xl px-4 py-2 font-semibold transition",
+            mode === "manual" ? "bg-brand text-white" : "border border-ink/15 text-ink hover:border-brand hover:text-brand"
+          )}
         >
           Saisie manuelle
         </button>

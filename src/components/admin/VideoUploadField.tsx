@@ -1,19 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { FileDropzone } from "@/components/ui/FileDropzone";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export function VideoUploadField({ campaignId, currentVideoUrl }: { campaignId: string; currentVideoUrl: string | null }) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState(currentVideoUrl);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleFile(file: File) {
     setError(null);
     setProgress(0);
 
@@ -32,18 +33,15 @@ export function VideoUploadField({ campaignId, currentVideoUrl }: { campaignId: 
       if (!res.ok) throw new Error("Échec de l'enregistrement de la vidéo.");
 
       setVideoUrl(blob.url);
-      setProgress(null);
       router.refresh();
     } catch (err) {
       setError((err as Error).message || "Échec de l'upload.");
-      setProgress(null);
     } finally {
-      if (inputRef.current) inputRef.current.value = "";
+      setProgress(null);
     }
   }
 
   async function handleRemove() {
-    if (!confirm("Retirer la vidéo de cette campagne ?")) return;
     const res = await fetch(`/api/admin/campaigns/${campaignId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -53,42 +51,43 @@ export function VideoUploadField({ campaignId, currentVideoUrl }: { campaignId: 
       setVideoUrl(null);
       router.refresh();
     }
+    setConfirmingRemove(false);
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-6">
-      <div>
-        <h2 className="text-sm font-semibold">Vidéo obligatoire avant le quiz</h2>
-        <p className="text-xs text-neutral-500">
-          Si une vidéo est renseignée, les participants doivent la regarder en entier avant d&apos;accéder au
-          questionnaire, et le score final devient une note sur 10 (au lieu du score type Kahoot).
-        </p>
-      </div>
+    <Card>
+      <CardHeader
+        title="Vidéo obligatoire avant le quiz"
+        description="Si une vidéo est renseignée, les participants doivent la regarder en entier avant d'accéder au questionnaire, et le score final devient une note sur 10 (au lieu du score type Kahoot)."
+      />
 
       {videoUrl && (
-        <div className="flex flex-col gap-2">
-          <video src={videoUrl} controls className="w-full max-w-md rounded-lg bg-black" />
-          <button onClick={handleRemove} className="self-start text-xs font-medium text-red-600 hover:underline">
+        <div className="mb-4 flex flex-col gap-2">
+          <video src={videoUrl} controls className="w-full max-w-md rounded-xl bg-ink" />
+          <button onClick={() => setConfirmingRemove(true)} className="self-start text-xs font-semibold text-red-600 hover:underline">
             Retirer la vidéo
           </button>
         </div>
       )}
 
-      <div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/mp4,video/webm,video/quicktime"
-          onChange={handleFileChange}
-          className="text-sm"
+      <FileDropzone onFile={handleFile} accept="video/mp4,video/webm,video/quicktime" label="Glissez une vidéo ici, ou cliquez pour parcourir" disabled={progress !== null} />
+      {progress !== null && (
+        <div className="mt-3 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-offwhite">
+          <div className="h-full bg-brand transition-[width]" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+      {error && <p className="mt-2 text-sm font-medium text-red-600">{error}</p>}
+
+      {confirmingRemove && (
+        <ConfirmDialog
+          title="Retirer la vidéo ?"
+          description="Les participants n'auront plus besoin de la regarder avant le questionnaire."
+          confirmLabel="Retirer"
+          danger
+          onClose={() => setConfirmingRemove(false)}
+          onConfirm={handleRemove}
         />
-        {progress !== null && (
-          <div className="mt-2 h-2 w-full max-w-md overflow-hidden rounded-full bg-neutral-200">
-            <div className="h-full bg-brand transition-[width]" style={{ width: `${progress}%` }} />
-          </div>
-        )}
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      </div>
-    </div>
+      )}
+    </Card>
   );
 }

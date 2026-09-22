@@ -7,3 +7,4 @@ dist
 .env.local
 dev.db
 dev.db-journal
+tsconfig.tsbuildinfo

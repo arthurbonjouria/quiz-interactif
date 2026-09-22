@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { Field } from "@/components/ui/Field";
+import { Input, Textarea } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/cn";
 
 type Campaign = { id: string; label: string; questionnaireTitle: string; companyName: string };
 
@@ -41,53 +46,49 @@ export function NewFolderForm({ campaigns }: { campaigns: Campaign[] }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-4">
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Titre du dossier</label>
-        <input
-          required
-          placeholder="Ex. Parcours IA Act complet"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-5">
+      <Card>
+        <div className="flex flex-col gap-4">
+          <Field label="Titre du dossier">
+            <Input required placeholder="Ex. Parcours IA Act complet" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </Field>
+          <Field label="Description" hint="optionnel">
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+          </Field>
+        </div>
+      </Card>
 
-      <div>
-        <label className="mb-1 block text-xs font-medium text-neutral-500">Description (optionnel)</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
-        />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-xs font-medium text-neutral-500">Cours à inclure</label>
-        <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4">
+      <Field label={`Cours à inclure (${selected.length} sélectionné${selected.length > 1 ? "s" : ""})`}>
+        <div className="flex flex-col gap-2 rounded-2xl border border-ink/10 bg-white p-3">
           {campaigns.map((c) => (
-            <label key={c.id} className="flex items-center gap-3 text-sm">
-              <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggle(c.id)} />
-              <span className="font-medium">{c.label}</span>
-              <span className="text-neutral-400">
+            <label
+              key={c.id}
+              className={cn(
+                "flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                selected.includes(c.id) ? "bg-soft/50" : "hover:bg-offwhite"
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(c.id)}
+                onChange={() => toggle(c.id)}
+                className="h-4 w-4 accent-brand"
+              />
+              <span className="font-semibold text-ink">{c.label}</span>
+              <span className="text-cloudy">
                 · {c.questionnaireTitle} · {c.companyName}
               </span>
             </label>
           ))}
-          {campaigns.length === 0 && <p className="text-sm text-neutral-400">Aucune campagne disponible.</p>}
+          {campaigns.length === 0 && <p className="px-3 py-2 text-sm text-cloudy">Aucune campagne disponible.</p>}
         </div>
-      </div>
+      </Field>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="self-start rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand disabled:opacity-50"
-      >
+      <Button type="submit" loading={saving} className="self-start">
         {saving ? "Création…" : "Créer le dossier"}
-      </button>
+      </Button>
     </form>
   );
 }
